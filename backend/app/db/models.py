@@ -15,6 +15,8 @@ class Case(SQLModel, table=True):
     status: str = Field(default="UPLOADED")
     facts_confirmed: bool = Field(default=False)
     facts_json: Optional[str] = Field(default=None)
+    rejection_json: Optional[str] = Field(default=None)
+    unverified_findings_json: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=utc_now)
 
 

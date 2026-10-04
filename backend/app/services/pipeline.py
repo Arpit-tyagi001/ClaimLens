@@ -214,45 +214,48 @@ def determine_resume_stage(case_id: str) -> Stage | None:
 
 
 def build_default_registry() -> Dict[Stage, StageSpec]:
-    mock_docs = os.getenv("MOCK_DOCS", "true").lower() in ("true", "1")
-    mock_ai = os.getenv("MOCK_AI", "true").lower() in ("true", "1")
+    from backend.app.config import get_settings
+    settings = get_settings()
 
-    from backend.app.services import mock_stages
+    mock_docs = settings.MOCK_DOCS
+    mock_ai = settings.MOCK_AI
+
+    from backend.app.services import mock_stages, real_stages
 
     extracting_fn = (
         mock_stages.mock_extracting_stage
         if mock_docs
-        else mock_stages.mock_extracting_stage  # TODO(wire): replace with real docs import
+        else real_stages.real_extracting_stage
     )
     investigating_fn = (
         mock_stages.mock_investigating_stage
         if mock_ai
-        else mock_stages.mock_investigating_stage  # TODO(wire): replace with real ai import
+        else real_stages.real_investigating_stage
     )
     verifying_fn = (
         mock_stages.mock_verifying_stage
         if mock_ai
-        else mock_stages.mock_verifying_stage  # TODO(wire): replace with real ai import
+        else real_stages.real_verifying_stage
     )
 
     registry: Dict[Stage, StageSpec] = {
         Stage.EXTRACTING: StageSpec(
             fn=extracting_fn,
-            timeout_s=60.0,
-            max_retries=2,
+            timeout_s=settings.TIMEOUT_EXTRACTING,
+            max_retries=settings.MAX_RETRIES,
             backoff_base_s=2.0,
         ),
         Stage.INVESTIGATING: StageSpec(
             fn=investigating_fn,
-            timeout_s=120.0,
-            max_retries=2,
+            timeout_s=settings.TIMEOUT_INVESTIGATING,
+            max_retries=settings.MAX_RETRIES,
             backoff_base_s=2.0,
-            fallback=mock_stages.mock_investigating_fallback,
+            fallback=mock_stages.mock_investigating_fallback if mock_ai else None,
         ),
         Stage.VERIFYING: StageSpec(
             fn=verifying_fn,
-            timeout_s=120.0,
-            max_retries=2,
+            timeout_s=settings.TIMEOUT_VERIFYING,
+            max_retries=settings.MAX_RETRIES,
             backoff_base_s=2.0,
         ),
     }
@@ -333,9 +336,18 @@ async def _execute_stage(case_id: str, stage: Stage, spec: StageSpec) -> None:
 
     # Terminal failure
     is_timeout = isinstance(last_exc, TimeoutError) or isinstance(last_exc, asyncio.TimeoutError)
-    err_code = "STAGE_TIMEOUT" if is_timeout else "STAGE_FAILED"
-    err_msg = f"{stage.value} timed out" if is_timeout else f"{stage.value} failed"
-    detail_msg = f"{stage.value} timed out" if is_timeout else f"Stage {stage.value} failed"
+    if isinstance(last_exc, PipelineException):
+        err_code = last_exc.code
+        err_msg = last_exc.message
+        detail_msg = f"{last_exc.code}: {last_exc.message}"
+    elif is_timeout:
+        err_code = "STAGE_TIMEOUT"
+        err_msg = f"{stage.value} timed out"
+        detail_msg = f"{stage.value} timed out"
+    else:
+        err_code = "STAGE_FAILED"
+        err_msg = f"{stage.value} failed"
+        detail_msg = f"Stage {stage.value} failed"
 
     emit_event(case_id, stage, StageStatus.FAILED, detail_msg)
     raise PipelineException(code=err_code, message=err_msg, stage=stage.value)

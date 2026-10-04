@@ -111,12 +111,15 @@ def generate_export_data(case_id: str, session: Session) -> Dict[str, Any]:
     now_iso = datetime.now(timezone.utc).isoformat()
     created_at_iso = case.created_at.isoformat() if hasattr(case, "created_at") and case.created_at else now_iso
 
+    from backend.app.config import get_case_mode
+
     return {
         "case_id": case.case_id,
         "created_at": created_at_iso,
         "status": case.status,
         "notice": "Notice: This export is generated from synthetic data and evidence quotes. It is not legal advice.",
         "generated_at": now_iso,
+        "mode": get_case_mode(),
         "documents": documents_list,
         "policy_facts": facts_data,
         "findings": findings_list,
@@ -186,6 +189,11 @@ def export_as_html(data: Dict[str, Any]) -> str:
     else:
         draft_html = "<p>No draft generated.</p>"
 
+    mode = data.get("mode", {})
+    mock_notice = ""
+    if mode.get("mock_docs") or mode.get("mock_ai"):
+        mock_notice = f'<div class="notice"><strong>Notice:</strong> Running in demo/mock mode (Mock AI: {mode.get("mock_ai")}, Mock Documents: {mode.get("mock_docs")}).</div>'
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -202,6 +210,7 @@ def export_as_html(data: Dict[str, Any]) -> str:
 </head>
 <body>
     <h1>ClaimLens Case Packet: {case_id}</h1>
+    {mock_notice}
     <div class="notice"><strong>Disclaimer:</strong> {notice}</div>
     <p><strong>Created At:</strong> {created_at} | <strong>Status:</strong> {status} | <strong>Generated At:</strong> {generated_at}</p>
 

@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     RATE_LIMIT_REVIEW_PER_MIN: int = 60
     RATE_LIMIT_ENABLED: bool = True
     EVAL_REPORT_PATH: str = "eval/report.json"
+    ALLOW_MOCK_FALLBACK: bool = True
+    LLM_REPLAY: bool = False
 
     # Stage timeouts and retries
     TIMEOUT_EXTRACTING: float = 30.0
@@ -42,3 +44,12 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+
+
+def get_case_mode() -> dict:
+    settings = get_settings()
+    return {
+        "mock_docs": settings.MOCK_DOCS,
+        "mock_ai": settings.MOCK_AI,
+        "replay_cache": settings.LLM_REPLAY,
+    }

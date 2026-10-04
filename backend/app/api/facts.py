@@ -153,6 +153,8 @@ async def get_case_detail(
         latest_stage = case.status
         last_seq = 0
 
+    from backend.app.config import get_case_mode
+
     return {
         "case_id": case.case_id,
         "status": case.status,
@@ -160,4 +162,5 @@ async def get_case_detail(
         "facts_confirmed": case.facts_confirmed,
         "documents": documents_list,
         "last_seq": last_seq,
+        "mode": get_case_mode(),
     }

@@ -82,8 +82,11 @@ def get_case_trace(case_id: str, session: Session) -> Dict[str, Any]:
     else:
         total_duration_ms = 0
 
+    from backend.app.config import get_case_mode
+
     return {
         "case_id": case_id,
         "total_duration_ms": total_duration_ms,
         "stages": stages_result,
+        "mode": get_case_mode(),
     }
