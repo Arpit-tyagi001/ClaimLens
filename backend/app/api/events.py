@@ -9,8 +9,9 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 
-from backend.app.db.models import Case, PipelineEvent
+import backend.app.db.session as db_session
 from backend.app.db.session import engine
+from backend.app.db.models import Case, PipelineEvent
 
 logger = logging.getLogger("claimlens.events")
 
@@ -21,13 +22,13 @@ KEEP_ALIVE_INTERVAL_S: float = 15.0
 
 
 def _case_exists(case_id: str) -> bool:
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         case = session.exec(select(Case).where(Case.case_id == case_id)).one_or_none()
         return case is not None
 
 
 def _fetch_new_events(case_id: str, after_seq: int) -> list[dict]:
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         events = session.exec(
             select(PipelineEvent)
             .where(PipelineEvent.case_id == case_id)

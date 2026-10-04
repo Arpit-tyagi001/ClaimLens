@@ -10,8 +10,9 @@ from typing import Awaitable, Callable, Optional, Set, Dict, Any
 
 from sqlmodel import Session, select, func
 
-from backend.app.db.models import Case, PipelineEvent
+import backend.app.db.session as db_session
 from backend.app.db.session import engine
+from backend.app.db.models import Case, PipelineEvent
 
 logger = logging.getLogger("claimlens.pipeline")
 
@@ -48,6 +49,29 @@ class StageStatus(str, Enum):
 class StageContext:
     case_id: str
     emit: Callable[..., None]
+    current_stage: Optional[str] = None
+
+    def record_metrics(
+        self,
+        model: Optional[str] = None,
+        tokens_in: Optional[int] = None,
+        tokens_out: Optional[int] = None,
+        stage: Optional[str] = None,
+    ) -> None:
+        stg = stage or self.current_stage
+        if not stg:
+            return
+        from backend.app.db.models import StageMetric
+        with Session(db_session.engine) as session:
+            metric = StageMetric(
+                case_id=self.case_id,
+                stage=stg,
+                model=model,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+            )
+            session.add(metric)
+            session.commit()
 
 
 StageFn = Callable[[StageContext], None | Awaitable[None]]
@@ -95,7 +119,7 @@ def emit_event(
     status_str = status.value if isinstance(status, StageStatus) else str(status)
     clean_detail = str(detail)[:500]
 
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         seq = get_next_seq(session, case_id)
 
         event = PipelineEvent(
@@ -129,7 +153,7 @@ def emit_event(
 
 def facts_confirmed(case_id: str) -> bool:
     """Check if policy facts have been confirmed for the case."""
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         case = session.exec(select(Case).where(Case.case_id == case_id)).one_or_none()
         if case and hasattr(case, "facts_confirmed"):
             return bool(case.facts_confirmed)
@@ -138,7 +162,7 @@ def facts_confirmed(case_id: str) -> bool:
 
 def determine_resume_stage(case_id: str) -> Stage | None:
     """Read the latest event row(s) for the case to determine next stage."""
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         events = session.exec(
             select(PipelineEvent)
             .where(PipelineEvent.case_id == case_id)
@@ -165,7 +189,7 @@ def determine_resume_stage(case_id: str) -> Stage | None:
 
     if current_stage == Stage.AWAITING_FACTS and status_raw == StageStatus.WAITING.value:
         if facts_confirmed(case_id):
-            return Stage.INVESTIGATING
+            return Stage.AWAITING_FACTS
         else:
             return None
 
@@ -190,45 +214,48 @@ def determine_resume_stage(case_id: str) -> Stage | None:
 
 
 def build_default_registry() -> Dict[Stage, StageSpec]:
-    mock_docs = os.getenv("MOCK_DOCS", "true").lower() in ("true", "1")
-    mock_ai = os.getenv("MOCK_AI", "true").lower() in ("true", "1")
+    from backend.app.config import get_settings
+    settings = get_settings()
 
-    from backend.app.services import mock_stages
+    mock_docs = settings.MOCK_DOCS
+    mock_ai = settings.MOCK_AI
+
+    from backend.app.services import mock_stages, real_stages
 
     extracting_fn = (
         mock_stages.mock_extracting_stage
         if mock_docs
-        else mock_stages.mock_extracting_stage  # TODO(wire): replace with real docs import
+        else real_stages.real_extracting_stage
     )
     investigating_fn = (
         mock_stages.mock_investigating_stage
         if mock_ai
-        else mock_stages.mock_investigating_stage  # TODO(wire): replace with real ai import
+        else real_stages.real_investigating_stage
     )
     verifying_fn = (
         mock_stages.mock_verifying_stage
         if mock_ai
-        else mock_stages.mock_verifying_stage  # TODO(wire): replace with real ai import
+        else real_stages.real_verifying_stage
     )
 
     registry: Dict[Stage, StageSpec] = {
         Stage.EXTRACTING: StageSpec(
             fn=extracting_fn,
-            timeout_s=60.0,
-            max_retries=2,
+            timeout_s=settings.TIMEOUT_EXTRACTING,
+            max_retries=settings.MAX_RETRIES,
             backoff_base_s=2.0,
         ),
         Stage.INVESTIGATING: StageSpec(
             fn=investigating_fn,
-            timeout_s=120.0,
-            max_retries=2,
+            timeout_s=settings.TIMEOUT_INVESTIGATING,
+            max_retries=settings.MAX_RETRIES,
             backoff_base_s=2.0,
-            fallback=mock_stages.mock_investigating_fallback,
+            fallback=mock_stages.mock_investigating_fallback if mock_ai else None,
         ),
         Stage.VERIFYING: StageSpec(
             fn=verifying_fn,
-            timeout_s=120.0,
-            max_retries=2,
+            timeout_s=settings.TIMEOUT_VERIFYING,
+            max_retries=settings.MAX_RETRIES,
             backoff_base_s=2.0,
         ),
     }
@@ -253,7 +280,8 @@ async def _execute_stage(case_id: str, stage: Stage, spec: StageSpec) -> None:
             dt = json.dumps(status_or_detail) if isinstance(status_or_detail, dict) else str(status_or_detail)
         emit_event(case_id, stage, st, dt)
 
-    ctx = StageContext(case_id=case_id, emit=_emit_progress)
+    stage_str = stage.value if isinstance(stage, Stage) else str(stage)
+    ctx = StageContext(case_id=case_id, emit=_emit_progress, current_stage=stage_str)
     total_attempts = spec.max_retries + 1
     last_exc: Optional[Exception] = None
 
@@ -308,9 +336,18 @@ async def _execute_stage(case_id: str, stage: Stage, spec: StageSpec) -> None:
 
     # Terminal failure
     is_timeout = isinstance(last_exc, TimeoutError) or isinstance(last_exc, asyncio.TimeoutError)
-    err_code = "STAGE_TIMEOUT" if is_timeout else "STAGE_FAILED"
-    err_msg = f"{stage.value} timed out" if is_timeout else f"{stage.value} failed"
-    detail_msg = f"{stage.value} timed out" if is_timeout else f"Stage {stage.value} failed"
+    if isinstance(last_exc, PipelineException):
+        err_code = last_exc.code
+        err_msg = last_exc.message
+        detail_msg = f"{last_exc.code}: {last_exc.message}"
+    elif is_timeout:
+        err_code = "STAGE_TIMEOUT"
+        err_msg = f"{stage.value} timed out"
+        detail_msg = f"{stage.value} timed out"
+    else:
+        err_code = "STAGE_FAILED"
+        err_msg = f"{stage.value} failed"
+        detail_msg = f"Stage {stage.value} failed"
 
     emit_event(case_id, stage, StageStatus.FAILED, detail_msg)
     raise PipelineException(code=err_code, message=err_msg, stage=stage.value)
@@ -408,7 +445,7 @@ def resume_pipeline(case_id: str) -> asyncio.Task:
 
 def recover_incomplete_cases() -> list[str]:
     """Find cases whose last event is RUNNING/RETRYING/FALLBACK and resume each."""
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         events = session.exec(
             select(PipelineEvent).order_by(PipelineEvent.case_id, PipelineEvent.seq.desc())
         ).all()
