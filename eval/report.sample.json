@@ -1,0 +1,15 @@
+{
+  "synthetic_benchmark": true,
+  "n_cases": 8,
+  "extraction_correct": 7,
+  "extraction_total": 8,
+  "recall_at_3_hits": 8,
+  "recall_at_3_total": 8,
+  "grounding_ok": 7,
+  "grounding_total": 8,
+  "injected_caught": 2,
+  "injected_total": 2,
+  "verdict_agree": 7,
+  "verdict_total": 8,
+  "notes": "Sample benchmark report generated from synthetic test cases for pipeline evaluation."
+}

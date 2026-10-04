@@ -3,8 +3,10 @@ from typing import Optional
 from datetime import datetime, timezone
 import json
 
+
 def utc_now():
     return datetime.now(timezone.utc)
+
 
 class Case(SQLModel, table=True):
     __tablename__ = "cases"
@@ -12,16 +14,22 @@ class Case(SQLModel, table=True):
     case_id: str = Field(index=True, unique=True)
     status: str = Field(default="UPLOADED")
     facts_confirmed: bool = Field(default=False)
+    facts_json: Optional[str] = Field(default=None)
+    rejection_json: Optional[str] = Field(default=None)
+    unverified_findings_json: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=utc_now)
+
 
 class Document(SQLModel, table=True):
     __tablename__ = "documents"
     id: Optional[int] = Field(default=None, primary_key=True)
     doc_id: str = Field(index=True, unique=True)
     case_id: str = Field(foreign_key="cases.case_id")
-    doc_type: str 
+    doc_type: str
+    filename: Optional[str] = Field(default=None)
     n_pages: Optional[int] = None
     has_text_layer: bool = True
+
 
 class Chunk(SQLModel, table=True):
     __tablename__ = "chunks"
@@ -31,20 +39,34 @@ class Chunk(SQLModel, table=True):
     section_path: str
     page: int
     text: str
-    bbox_json: str = Field(default="[]") 
+    bbox_json: str = Field(default="[]")
     tags_json: str = Field(default="[]")
+
 
 class Finding(SQLModel, table=True):
     __tablename__ = "findings"
     id: Optional[int] = Field(default=None, primary_key=True)
     finding_id: str = Field(index=True, unique=True)
-    case_id: str = Field(foreign_key="cases.case_id")
+    case_id: str = Field(foreign_key="cases.case_id", index=True)
     reason_id: str
-    assessment: str
-    confidence: float
-    reasoning: str
-    status: str = Field(default="PENDING_VERIFICATION")
-    evidence_json: str = Field(default="[]")
+    payload_json: str = Field(default="{}")
+    review_status: str = Field(default="PENDING")
+    edited_reasoning: Optional[str] = Field(default=None)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+
+class AuditLog(SQLModel, table=True):
+    __tablename__ = "audit_log"
+    id: Optional[int] = Field(default=None, primary_key=True)
+    case_id: str = Field(foreign_key="cases.case_id", index=True)
+    finding_id: Optional[str] = Field(default=None, index=True)
+    actor: str = Field(default="reviewer")
+    action: str
+    before_json: str
+    after_json: str
+    note: Optional[str] = Field(default=None)
+    ts: datetime = Field(default_factory=utc_now)
+
 
 class PipelineEvent(SQLModel, table=True):
     __tablename__ = "pipeline_events"
@@ -54,6 +76,29 @@ class PipelineEvent(SQLModel, table=True):
     case_id: str = Field(foreign_key="cases.case_id", index=True)
     seq: int = Field(index=True)
     stage: str
-    status: str 
+    status: str
     detail: str
     ts: datetime = Field(default_factory=utc_now)
+
+
+class Draft(SQLModel, table=True):
+    __tablename__ = "drafts"
+    id: Optional[int] = Field(default=None, primary_key=True)
+    draft_id: str = Field(index=True, unique=True)
+    case_id: str = Field(foreign_key="cases.case_id", index=True)
+    text: str
+    citations_json: str = Field(default="[]")
+    based_on_json: str = Field(default="[]")
+    skipped_finding_ids_json: str = Field(default="[]")
+    created_at: datetime = Field(default_factory=utc_now)
+
+
+class StageMetric(SQLModel, table=True):
+    __tablename__ = "stage_metrics"
+    id: Optional[int] = Field(default=None, primary_key=True)
+    case_id: str = Field(foreign_key="cases.case_id", index=True)
+    stage: str
+    model: Optional[str] = Field(default=None)
+    tokens_in: Optional[int] = Field(default=None)
+    tokens_out: Optional[int] = Field(default=None)
+    created_at: datetime = Field(default_factory=utc_now)

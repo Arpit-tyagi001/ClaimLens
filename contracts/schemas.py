@@ -64,3 +64,16 @@ class VerifiedFinding(Finding):
     status: Literal["VERIFIED", "DOWNGRADED", "NEEDS_HUMAN", "REJECTED_UNGROUNDED"]
     final_assessment: str
     final_confidence: float
+
+class WaitingPeriod(BaseModel):
+    kind: str
+    months: int
+    chunk_id: Optional[str] = None
+
+
+class PolicyFacts(BaseModel):
+    policy_start: Optional[date] = None
+    policy_end: Optional[date] = None
+    sum_insured: Optional[float] = None
+    waiting_periods: List[WaitingPeriod] = []
+    confirmed_by_user: bool = False

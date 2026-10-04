@@ -1,0 +1,109 @@
+Backend, API and pipeline orchestration (Member 1)
+
+The FastAPI backend sits between the browser and the AI and document packages. It owns the API, the data model, the staged pipeline runner, live progress streaming, the human-review workflow and the audit trail. claimlens_docs (Member 4) and claimlens_ai (Member 3) plug in as plain Python functions through typed contracts.
+
+Status: the pipeline stages currently run as mock stages unless MOCK_DOCS=false / MOCK_AI=false and the real packages are importable. GET /api/cases/{id} returns a mode field so the UI can show which mode is active. This is a synthetic-data demo, and the output is not legal advice.
+
+What it does
+Staged pipeline: UPLOADED -> EXTRACTING -> AWAITING_FACTS -> INVESTIGATING -> VERIFYING -> READY_FOR_REVIEW.
+Per-stage timeout, bounded retry with exponential backoff and jitter, optional fallback. A permanent error (PipelineException(retryable=False)) is not retried. Everything else is.
+Persisted state and resume. Every transition is a row in pipeline_events with a monotonic per-case seq. After a restart, cases that were mid-run are resumed from the last event.
+Human-in-the-loop pause. The runner stops at AWAITING_FACTS until the user confirms policy facts. A confirmed PUT resumes the run.
+Live progress over SSE with Last-Event-ID replay, so a page reload rebuilds the timeline.
+Review workflow. Approve, reject or edit each finding. Every action writes an append-only audit_log row (database triggers block UPDATE and DELETE).
+Draft and export. A draft is built from approved or edited findings only. The evidence bundle (JSON or HTML) includes verifier results and the audit trail.
+Hygiene. PDF magic-byte and size validation, uniform error shape with no stack traces to clients, request ids, JSON logs, rate limiting, case deletion and TTL purge.
+Run it
+
+From the repo root (Python 3.12 is the project target):
+
+bash
+python -m venv venv
+venv\Scripts\activate            # Windows
+pip install -r requirements.txt
+copy .env.example .env           # then edit if needed
+uvicorn backend.app.main:app --reload
+
+Interactive docs: http://localhost:8000/docs
+
+Run the tests from the repo root:
+
+bash
+pytest -q
+
+If you change the database models, delete the local SQLite file (claimlens_local.db) and restart. The app uses create_all, which does not alter existing tables.
+
+Configuration (.env)
+
+See .env.example for every variable. The main ones:
+
+Variable	Default	Purpose
+ENV	dev	production disables the debug router and wildcard CORS
+MOCK_DOCS / MOCK_AI	true	Use mock stages instead of claimlens_docs / claimlens_ai
+ALLOW_MOCK_FALLBACK	true in dev	If a real package is missing, run the mock and say so in an event
+MAX_UPLOAD_BYTES	10 MB	Per-file upload cap
+RETENTION_HOURS	24	Uploads and cases older than this are purged
+RATE_LIMIT_UPLOAD_PER_MIN / RATE_LIMIT_REVIEW_PER_MIN	10 / 60	In-memory per-IP limits
+CORS_ORIGINS	http://localhost:5173	Allowed frontend origins
+Endpoints
+
+Errors always use {"error": {"code": "...", "message": "...", "stage": "..." | null}}.
+
+Method and path	Purpose
+POST /api/cases	Upload policy and letter PDFs. Returns 202 {case_id, status} and starts the pipeline
+GET /api/cases/{id}	Case state: stage, documents with file_url, facts_confirmed, mode
+DELETE /api/cases/{id}	Delete case data and files
+POST /api/cases/{id}/resume	Resume or retry a stopped run
+GET /api/cases/{id}/events	SSE stream of stage events (seq, stage, status, detail, ts)
+GET /api/cases/{id}/documents/{doc_id}/file	Stream the stored PDF
+GET /api/cases/{id}/policy-facts	Extracted policy facts for the confirm form
+PUT /api/cases/{id}/policy-facts	Save confirmed facts and resume the pipeline
+GET /api/cases/{id}/findings	Findings with review status
+POST /api/findings/{id}/review	{action: APPROVE or REJECT or EDIT, note?, edited_reasoning?}
+GET /api/cases/{id}/audit	Append-only audit trail
+GET /api/cases/{id}/review-summary	Counts and can_draft
+POST /api/cases/{id}/draft	Draft from approved or edited findings only
+GET /api/cases/{id}/draft/latest	Latest draft
+GET /api/cases/{id}/export?format=json|html	Evidence bundle
+GET /api/cases/{id}/trace	Per-stage latency, attempts, retries, fallback
+GET /api/eval/latest	Contents of eval/report.json (or {"available": false})
+GET /healthz, GET /readyz	Liveness and readiness
+GET/DELETE /debug/fail-stage	Dev only. Failure injection
+Demo: failure injection, retry, fallback and recovery
+
+Use ENV=dev. Open a second terminal for the stream (on Windows use curl.exe, not curl).
+
+1. Retry, then success
+
+bash
+curl "http://localhost:8000/debug/fail-stage?stage=INVESTIGATING&mode=once"
+
+Upload a case at /docs and copy the case_id, then watch the stream:
+
+bash
+curl.exe -N http://localhost:8000/api/cases/<case_id>/events
+
+At AWAITING_FACTS, PUT the facts back to /api/cases/<case_id>/policy-facts (or use the form). In INVESTIGATING you should see RUNNING, then RETRYING, then RUNNING and COMPLETED.
+
+2. Retries exhausted, then fallback
+
+bash
+curl "http://localhost:8000/debug/fail-stage?stage=INVESTIGATING&mode=fail"
+
+Repeat the upload and confirm. You should see RETRYING events, then FALLBACK, then COMPLETED with the detail "completed via fallback".
+
+3. Timeout
+
+Use mode=timeout. The stage is cut off by its timeout and retried.
+
+4. Crash recovery
+
+Stop the server (Ctrl+C) while a case is in INVESTIGATING and start it again. On startup the runner finds cases whose last event was RUNNING, RETRYING or FALLBACK and resumes them. Stages that already completed are not run again.
+
+Reset with DELETE /debug/fail-stage.
+
+Tests
+
+The suite covers retry semantics, timeouts, fallback, resume after a simulated crash, the duplicate-start guard, event sequence numbers, SSE replay and keep-alive, upload validation, PDF serving and path-traversal protection, uniform errors including 500s, the facts confirm flow, the review and audit log (including append-only enforcement and rollback atomicity), delete and TTL purge, rate limiting, draft, export (including HTML escaping), trace, and wiring behind the mock switches with fake packages.
+
+Run pytest -q for the current count. See docs/LIMITATIONS.md for what this backend does not do.
