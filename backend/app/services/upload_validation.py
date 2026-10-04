@@ -1,10 +1,10 @@
 import logging
-import os
 from typing import Optional
+from backend.app.config import get_settings
 
 logger = logging.getLogger("claimlens.upload_validation")
 
-MAX_UPLOAD_BYTES: int = int(os.getenv("MAX_UPLOAD_BYTES", 10 * 1024 * 1024))
+MAX_UPLOAD_BYTES: int = get_settings().MAX_UPLOAD_BYTES
 
 
 def validate_pdf(
@@ -19,6 +19,9 @@ def validate_pdf(
     """
     from backend.app.main import PipelineException
 
+    global MAX_UPLOAD_BYTES
+    max_bytes = MAX_UPLOAD_BYTES
+
     if not data or len(data) == 0:
         raise PipelineException(
             code="EMPTY_FILE",
@@ -27,7 +30,7 @@ def validate_pdf(
             status_code=400,
         )
 
-    if len(data) > MAX_UPLOAD_BYTES:
+    if len(data) > max_bytes:
         raise PipelineException(
             code="FILE_TOO_LARGE",
             message=f"The {label} file exceeds maximum allowed size.",

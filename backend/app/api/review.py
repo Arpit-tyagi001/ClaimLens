@@ -40,7 +40,9 @@ async def get_case_findings(
     return load_findings(case_id)
 
 
-@router.post("/findings/{finding_id}/review")
+from backend.app.services.rate_limiter import rate_limit
+
+@router.post("/findings/{finding_id}/review", dependencies=[Depends(rate_limit("review", lambda s: s.RATE_LIMIT_REVIEW_PER_MIN))])
 async def review_finding(
     finding_id: str,
     raw_request: Request,

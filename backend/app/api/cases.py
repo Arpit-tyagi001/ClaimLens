@@ -3,7 +3,7 @@ import os
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, UploadFile, File, Depends, Response
 from fastapi.responses import FileResponse
 from sqlmodel import Session, select
 
@@ -11,11 +11,18 @@ import backend.app.db.session as db_session
 from backend.app.db.session import get_session
 from backend.app.db.models import Case, Document, PipelineEvent
 from backend.app.services.pipeline import start_pipeline, resume_pipeline, get_next_seq
+from backend.app.config import get_settings
+from backend.app.services.rate_limiter import rate_limit
 
 router = APIRouter(prefix="/api/cases", tags=["Cases"])
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_DIR = get_settings().UPLOAD_DIR
+
+
+def _get_active_upload_dir() -> str:
+    # Allows tests that monkeypatch cases.UPLOAD_DIR to continue working seamlessly
+    global UPLOAD_DIR
+    return UPLOAD_DIR or get_settings().UPLOAD_DIR
 
 
 def _save_case_to_db(
@@ -28,7 +35,7 @@ def _save_case_to_db(
     letter_filename: Optional[str],
     session: Session,
 ) -> Case:
-    uploads_dir_abs = os.path.abspath(UPLOAD_DIR)
+    uploads_dir_abs = os.path.abspath(_get_active_upload_dir())
     os.makedirs(uploads_dir_abs, exist_ok=True)
 
     with open(os.path.join(uploads_dir_abs, f"{policy_doc_id}.pdf"), "wb") as buffer:
@@ -67,14 +74,16 @@ def _save_case_to_db(
     return new_case
 
 
-@router.post("", status_code=202)
+@router.post("", status_code=202, dependencies=[Depends(rate_limit("upload", lambda s: s.RATE_LIMIT_UPLOAD_PER_MIN))])
 async def upload_case(
     policy: Optional[UploadFile] = File(None),
     letter: Optional[UploadFile] = File(None),
     session: Session = Depends(get_session),
 ):
     from backend.app.main import PipelineException
-    from backend.app.services.upload_validation import validate_pdf, MAX_UPLOAD_BYTES
+    from backend.app.services.upload_validation import validate_pdf
+
+    max_upload_bytes = get_settings().MAX_UPLOAD_BYTES
 
     # Validate missing file parts
     if policy is None or not policy.filename:
@@ -93,8 +102,8 @@ async def upload_case(
         )
 
     # Read content with MAX_UPLOAD_BYTES + 1 cap
-    policy_bytes = await policy.read(MAX_UPLOAD_BYTES + 1)
-    letter_bytes = await letter.read(MAX_UPLOAD_BYTES + 1)
+    policy_bytes = await policy.read(max_upload_bytes + 1)
+    letter_bytes = await letter.read(max_upload_bytes + 1)
 
     # Validate BOTH files before saving anything to disk or DB
     validate_pdf(policy.filename, policy.content_type, policy_bytes, label="policy")
@@ -121,6 +130,16 @@ async def upload_case(
 
     start_pipeline(case_id)
     return {"case_id": case_id, "status": "UPLOADED"}
+
+
+@router.delete("/{case_id}", status_code=204)
+async def delete_case(
+    case_id: str,
+    session: Session = Depends(get_session),
+):
+    from backend.app.services.delete_case import delete_case_data
+    delete_case_data(case_id, session)
+    return Response(status_code=204)
 
 
 @router.post("/{case_id}/resume", status_code=202)
@@ -169,7 +188,7 @@ async def serve_document_file(
         )
 
     # 2. Resolve path & path traversal guard
-    uploads_dir_abs = os.path.abspath(UPLOAD_DIR)
+    uploads_dir_abs = os.path.abspath(_get_active_upload_dir())
     target_path = os.path.abspath(os.path.join(uploads_dir_abs, f"{doc_id}.pdf"))
 
     # Verify target_path is inside uploads_dir_abs
