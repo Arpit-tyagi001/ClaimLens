@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent, ReactNode } from 'react'
-import { caseApi, validatePdf } from './api/client'
+import { caseApi, uploadCase, validatePdf } from './api/client'
 import { useCaseEvents } from './api/hooks'
+import { useCaseEvents as useLiveCaseEvents } from './api/useCaseEvents'
 import type { CaseFixture, CaseStage, Finding, PolicyFacts, ReviewAction, ReviewLogEntry } from './api/types'
 import { demoCase } from './mocks/fixtures'
 import './App.css'
@@ -188,6 +189,14 @@ function App() {
   const [caseStarted, setCaseStarted] = useState(false)
   const pipeline = useCaseEvents()
 
+  // Live SSE from the real backend (only set after a real upload)
+  const [liveCaseId, setLiveCaseId] = useState<string | null>(null)
+  const live = useLiveCaseEvents(liveCaseId)
+
+  useEffect(() => {
+    if (live.events.length) console.log('LIVE SSE events', live.events)
+  }, [live.events])
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     try { window.localStorage.setItem('claimlens-theme', theme) } catch { /* Theme still works for this session. */ }
@@ -211,15 +220,29 @@ function App() {
   const startReview = async () => {
     if (!policyName || !letterName) return
     setLoading(true)
-    const nextCase = await caseApi.getDemoCase()
-    setCaseData(nextCase)
-    setFacts(nextCase.facts)
-    setReviewStatus('PENDING')
-    setAuditLog([])
-    setCaseStarted(true)
-    setScreen('facts')
-    await pipeline.extract()
-    setLoading(false)
+    setError(null)
+    try {
+      let realCaseId: string | null = null
+      if (!demoLoaded && policy && letter) {
+        const result = await uploadCase(policy, letter)
+        realCaseId = result.case_id
+        setLiveCaseId(result.case_id)
+      } else {
+        setLiveCaseId(null)
+      }
+      const nextCase = await caseApi.getDemoCase()
+      setCaseData(realCaseId ? { ...nextCase, case_id: realCaseId } : nextCase)
+      setFacts(nextCase.facts)
+      setReviewStatus('PENDING')
+      setAuditLog([])
+      setCaseStarted(true)
+      setScreen('facts')
+      await pipeline.extract()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const confirmFacts = async () => {
