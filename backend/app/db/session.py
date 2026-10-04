@@ -1,12 +1,14 @@
 from sqlmodel import SQLModel, create_engine, Session, text
 from backend.app.db.models import *  # Imports your models so SQLModel knows about them
 
+from backend.app.config import get_settings
+
 sqlite_file_name = "claimlens_local.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 # check_same_thread is needed for FastAPI & SQLite
 connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
+engine = create_engine(sqlite_url, echo=get_settings().SQL_ECHO, connect_args=connect_args)
 
 
 def create_db_and_tables(target_engine=None):

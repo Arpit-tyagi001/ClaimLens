@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     EVAL_REPORT_PATH: str = "eval/report.json"
     ALLOW_MOCK_FALLBACK: bool = True
     LLM_REPLAY: bool = False
+    SQL_ECHO: bool = False
 
     # Stage timeouts and retries
     TIMEOUT_EXTRACTING: float = 30.0

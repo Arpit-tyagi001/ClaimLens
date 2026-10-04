@@ -28,7 +28,14 @@ def setup_logging():
     root = logging.getLogger()
     for handler in root.handlers[:]:
         root.removeHandler(handler)
+
     handler = logging.StreamHandler()
     handler.setFormatter(JSONFormatter())
     root.addHandler(handler)
     root.setLevel(logging.INFO)
+
+    # Configure uvicorn & sqlalchemy loggers to clear custom handlers and propagate to root
+    for logger_name in ["uvicorn", "uvicorn.access", "uvicorn.error", "sqlalchemy.engine", "sqlalchemy"]:
+        lg = logging.getLogger(logger_name)
+        lg.handlers.clear()
+        lg.propagate = True
