@@ -25,3 +25,25 @@ export const caseApi = {
     }
   },
 }
+
+export type UploadResult = { case_id: string; status: string }
+
+export async function uploadCase(policy: File, letter: File): Promise<UploadResult> {
+  const form = new FormData()
+  form.append('policy', policy)
+  form.append('letter', letter)
+
+  const res = await fetch('/api/cases', { method: 'POST', body: form })
+
+  if (!res.ok) {
+    let message = `Upload failed (${res.status})`
+    try {
+      const body = await res.json()
+      message = body?.error?.message ?? (typeof body?.detail === 'string' ? body.detail : message)
+    } catch {
+      // response was not JSON, keep the default message
+    }
+    throw new Error(message)
+  }
+  return res.json()
+}
