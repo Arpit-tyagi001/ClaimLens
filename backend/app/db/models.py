@@ -12,6 +12,7 @@ class Case(SQLModel, table=True):
     case_id: str = Field(index=True, unique=True)
     status: str = Field(default="UPLOADED")
     facts_confirmed: bool = Field(default=False)
+    facts_json: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=utc_now)
 
 class Document(SQLModel, table=True):

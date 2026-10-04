@@ -10,8 +10,9 @@ from typing import Awaitable, Callable, Optional, Set, Dict, Any
 
 from sqlmodel import Session, select, func
 
-from backend.app.db.models import Case, PipelineEvent
+import backend.app.db.session as db_session
 from backend.app.db.session import engine
+from backend.app.db.models import Case, PipelineEvent
 
 logger = logging.getLogger("claimlens.pipeline")
 
@@ -95,7 +96,7 @@ def emit_event(
     status_str = status.value if isinstance(status, StageStatus) else str(status)
     clean_detail = str(detail)[:500]
 
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         seq = get_next_seq(session, case_id)
 
         event = PipelineEvent(
@@ -129,7 +130,7 @@ def emit_event(
 
 def facts_confirmed(case_id: str) -> bool:
     """Check if policy facts have been confirmed for the case."""
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         case = session.exec(select(Case).where(Case.case_id == case_id)).one_or_none()
         if case and hasattr(case, "facts_confirmed"):
             return bool(case.facts_confirmed)
@@ -138,7 +139,7 @@ def facts_confirmed(case_id: str) -> bool:
 
 def determine_resume_stage(case_id: str) -> Stage | None:
     """Read the latest event row(s) for the case to determine next stage."""
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         events = session.exec(
             select(PipelineEvent)
             .where(PipelineEvent.case_id == case_id)
@@ -165,7 +166,7 @@ def determine_resume_stage(case_id: str) -> Stage | None:
 
     if current_stage == Stage.AWAITING_FACTS and status_raw == StageStatus.WAITING.value:
         if facts_confirmed(case_id):
-            return Stage.INVESTIGATING
+            return Stage.AWAITING_FACTS
         else:
             return None
 
@@ -408,7 +409,7 @@ def resume_pipeline(case_id: str) -> asyncio.Task:
 
 def recover_incomplete_cases() -> list[str]:
     """Find cases whose last event is RUNNING/RETRYING/FALLBACK and resume each."""
-    with Session(engine) as session:
+    with Session(db_session.engine) as session:
         events = session.exec(
             select(PipelineEvent).order_by(PipelineEvent.case_id, PipelineEvent.seq.desc())
         ).all()
