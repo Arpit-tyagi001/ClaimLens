@@ -10,7 +10,7 @@ export function validatePdf(file: File): string | null {
   return null
 }
 
-// Mock adapter used until M1's OpenAPI contract and backend are available.
+// Fixture adapter for case data and review actions whose backend endpoints are pending.
 export const caseApi = {
   async getDemoCase(): Promise<CaseFixture> {
     return structuredClone(demoCase)

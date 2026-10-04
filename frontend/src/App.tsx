@@ -3,6 +3,7 @@ import type { ChangeEvent, DragEvent, ReactNode } from 'react'
 import { caseApi, uploadCase, validatePdf } from './api/client'
 import { useCaseEvents } from './api/hooks'
 import { useCaseEvents as useLiveCaseEvents } from './api/useCaseEvents'
+import type { StageEvent } from './api/useCaseEvents'
 import type { CaseFixture, CaseStage, Finding, PolicyFacts, ReviewAction, ReviewLogEntry } from './api/types'
 import { demoCase } from './mocks/fixtures'
 import './App.css'
@@ -56,18 +57,20 @@ function Header({ crumb, onHelp, theme, onToggleTheme }: { crumb: string; onHelp
   return <div className="topbar"><div className="breadcrumb"><span>Workspace</span><b>/</b><strong>{crumb}</strong></div><div className="topbar-right"><span className="secure-pill"><i /> Mock mode</span><button className="theme-button" type="button" onClick={onToggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>{theme === 'light' ? '☾' : '☼'}<span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span></button><button className="help-button" onClick={onHelp}>Need help?</button></div></div>
 }
 
-function PipelineTimeline({ stages, running }: { stages: CaseStage[]; running: boolean }) {
+function PipelineTimeline({ stages, running, events = [], connected = false }: { stages: CaseStage[]; running: boolean; events?: StageEvent[]; connected?: boolean }) {
+  const liveStages = events.filter((event) => ['COMPLETED', 'WAITING', 'RUNNING', 'RETRYING', 'FALLBACK'].includes(event.status)).map((event) => event.stage as CaseStage)
+  const visibleStages = Array.from(new Set([...stages, ...liveStages]))
   return (
     <section className="pipeline-card" aria-label="Analysis progress">
-      <div className="pipeline-heading"><div><span className="step-kicker">CASE PROGRESS</span><h2>{running ? 'Preparing your review' : stages.includes('READY_FOR_REVIEW') ? 'Review ready' : 'Processing steps'}</h2></div><span className="mock-tag"><i /> FIXTURE MODE</span></div>
+      <div className="pipeline-heading"><div><span className="step-kicker">CASE PROGRESS</span><h2>{running ? 'Preparing your review' : visibleStages.includes('READY_FOR_REVIEW') ? 'Review ready' : 'Processing steps'}</h2></div><span className={`mock-tag ${connected ? 'live-tag' : ''}`}><i /> {connected ? 'LIVE SSE' : 'FIXTURE MODE'}</span></div>
       <div className="pipeline-list">
         {(['UPLOADED', 'EXTRACTING', 'AWAITING_FACTS', 'INVESTIGATING', 'VERIFYING', 'READY_FOR_REVIEW'] as CaseStage[]).map((stage, index) => {
-          const done = stages.includes(stage)
-          const current = running && stages.at(-1) === stage
+          const done = visibleStages.includes(stage)
+          const current = (running && visibleStages.at(-1) === stage) || events.some((event) => event.stage === stage && ['RUNNING', 'RETRYING', 'FALLBACK', 'WAITING'].includes(event.status))
           return <div className={`pipeline-step ${done ? 'is-done' : ''} ${current ? 'is-current' : ''}`} key={stage}><span className="pipeline-dot">{done ? '✓' : index + 1}</span><span>{stageNames[stage]}</span></div>
         })}
       </div>
-      <p className="pipeline-footnote">Progress is simulated for this frontend demo; live SSE will connect to M1's API.</p>
+      <p className="pipeline-footnote">{connected ? 'Live stage events from M1 are connected. Findings remain fixture data until the full case API is available.' : 'Fixture progress is simulated; uploaded cases connect to M1 SSE when the backend is running.'}</p>
     </section>
   )
 }
@@ -119,9 +122,9 @@ function UploadPage({ policyName, letterName, policyInput, letterInput, onFile, 
   )
 }
 
-function FactsPage({ facts, onChange, onConfirm, onBack, stages, running }: { facts: PolicyFacts; onChange: (facts: PolicyFacts) => void; onConfirm: () => void; onBack: () => void; stages: CaseStage[]; running: boolean }) {
+function FactsPage({ facts, onChange, onConfirm, onBack, stages, running, events, connected }: { facts: PolicyFacts; onChange: (facts: PolicyFacts) => void; onConfirm: () => void; onBack: () => void; stages: CaseStage[]; running: boolean; events: StageEvent[]; connected: boolean }) {
   const valid = Boolean(facts.policy_start && facts.policy_end && facts.waiting_period_days >= 0 && facts.waiting_period_days <= 3650 && facts.policy_end >= facts.policy_start)
-  return <div className="flow-page"><button className="back-button" onClick={onBack}>← Back to documents</button><div className="flow-heading"><span className="eyebrow"><span className="eyebrow-line" /> HUMAN REVIEW STEP</span><h1>Confirm policy facts</h1><p>Check the extracted details before the sample analysis continues. You can correct them here.</p></div><div className="flow-grid"><section className="upload-panel facts-panel"><div className="panel-heading"><div><span className="step-kicker">EXTRACTED FROM POLICY</span><h2>Policy details</h2></div><span className="mock-tag"><i /> MOCK DATA</span></div><label className="field-label">Policy start date<input type="date" value={facts.policy_start} onChange={(event) => onChange({ ...facts, policy_start: event.target.value })} /></label><label className="field-label">Policy end date<input type="date" value={facts.policy_end} onChange={(event) => onChange({ ...facts, policy_end: event.target.value })} /></label><label className="field-label">Initial waiting period (days)<input type="number" min="0" max="3650" value={facts.waiting_period_days} onChange={(event) => onChange({ ...facts, waiting_period_days: Number(event.target.value) })} /></label><p className="field-help">These fixture values can be edited for the UI demo. Real extraction is not connected.</p><button className="primary-button" disabled={!valid || running} onClick={onConfirm}>{running ? 'Running sample stages...' : 'Confirm facts and continue'} <span>→</span></button></section><PipelineTimeline stages={stages} running={running} /></div></div>
+  return <div className="flow-page"><button className="back-button" onClick={onBack}>← Back to documents</button><div className="flow-heading"><span className="eyebrow"><span className="eyebrow-line" /> HUMAN REVIEW STEP</span><h1>Confirm policy facts</h1><p>Check the extracted details before the sample analysis continues. You can correct them here.</p></div><div className="flow-grid"><section className="upload-panel facts-panel"><div className="panel-heading"><div><span className="step-kicker">EXTRACTED FROM POLICY</span><h2>Policy details</h2></div><span className="mock-tag"><i /> MOCK DATA</span></div><label className="field-label">Policy start date<input type="date" value={facts.policy_start} onChange={(event) => onChange({ ...facts, policy_start: event.target.value })} /></label><label className="field-label">Policy end date<input type="date" value={facts.policy_end} onChange={(event) => onChange({ ...facts, policy_end: event.target.value })} /></label><label className="field-label">Initial waiting period (days)<input type="number" min="0" max="3650" value={facts.waiting_period_days} onChange={(event) => onChange({ ...facts, waiting_period_days: Number(event.target.value) })} /></label><p className="field-help">These fixture values can be edited for the UI demo. Real extraction is not connected.</p><button className="primary-button" disabled={!valid || running} onClick={onConfirm}>{running ? 'Running sample stages...' : 'Confirm facts and continue'} <span>→</span></button></section><PipelineTimeline stages={stages} running={running} events={events} connected={connected} /></div></div>
 }
 
 function EvidencePane({ kind, finding }: { kind: DocumentKind; finding: Finding }) {
@@ -147,7 +150,7 @@ function DraftEditor() {
   return <div className="draft-block"><button className="draft-toggle" onClick={() => setOpen((value) => !value)}>{open ? 'Hide draft' : 'Create review-request draft'} <span>↗</span></button>{open && <div className="draft-preview"><span className="step-kicker">DRAFT PREVIEW - APPROVED FINDING ONLY</span><p>Dear Claims Team,</p><p>Please review the stated waiting-period ground for claim DEMO-CLAIM-104. The attached sample policy states that the initial waiting period is 30 days from the policy start date (Clause 3.1). The sample letter lists admission on 25 May 2026, while the policy start date is 01 April 2026.</p><p className="citation-chip">[Sample policy, Clause 3.1, page 1]</p><p>This is a mock draft for UI testing. Please verify all details before use.</p></div>}</div>
 }
 
-function CasePage({ caseData, facts, stages, running, reviewStatus, onReview, editText, onEditText, onSaveEdit, auditLog, onBackToFacts }: {
+function CasePage({ caseData, facts, stages, running, reviewStatus, onReview, editText, onEditText, onSaveEdit, auditLog, onBackToFacts, events, connected }: {
   caseData: CaseFixture
   facts: PolicyFacts
   stages: CaseStage[]
@@ -159,10 +162,12 @@ function CasePage({ caseData, facts, stages, running, reviewStatus, onReview, ed
   onSaveEdit: () => void
   auditLog: ReviewLogEntry[]
   onBackToFacts: () => void
+  events: StageEvent[]
+  connected: boolean
 }) {
   const finding = caseData.findings[0]
   const days = Math.floor((new Date(caseData.admission_date).getTime() - new Date(facts.policy_start).getTime()) / 86400000)
-  return <div className="case-page"><div className="case-heading"><div><button className="back-button" onClick={onBackToFacts}>← Confirmed facts</button><h1>Evidence review</h1><p>Case {caseData.case_id} · Synthetic sample</p></div><span className="mock-tag"><i /> FIXTURE PREVIEW</span></div><PipelineTimeline stages={stages} running={running} /><section className="facts-strip"><div><span>POLICY START</span><strong>{facts.policy_start}</strong></div><div><span>ADMISSION DATE</span><strong>{caseData.admission_date}</strong></div><div><span>WAITING PERIOD</span><strong>{facts.waiting_period_days} days</strong></div><div className="facts-rule"><span>DATE CHECK</span><strong>{days} days after start (fixture)</strong></div></section><section className="finding-summary"><div className="finding-icon">1</div><div className="finding-copy"><span className="step-kicker">REJECTION GROUND</span><h2>{finding.reason}</h2><p>{finding.assessment.replaceAll('_', ' ')} - cited clauses do not appear to support this ground in the sample facts.</p></div><span className="assessment-pill">{finding.assessment.replaceAll('_', ' ')} <small>MOCK</small></span></section><div className="evidence-grid"><EvidencePane kind="letter" finding={finding} /><EvidencePane kind="policy" finding={finding} /></div><div className="evidence-footnote"><ShieldIcon /><span>Highlighted text comes from the sample fixture. Actual PDF page and bounding-box highlighting awaits M4's document coordinates.</span></div><ReviewPanel status={reviewStatus} onReview={onReview} editText={editText} onEditText={onEditText} onSaveEdit={onSaveEdit} auditLog={auditLog} finding={finding} /></div>
+  return <div className="case-page"><div className="case-heading"><div><button className="back-button" onClick={onBackToFacts}>← Confirmed facts</button><h1>Evidence review</h1><p>Case {caseData.case_id} · Synthetic sample</p></div><span className="mock-tag"><i /> FIXTURE PREVIEW</span></div><div className="fixture-warning">This is canned demo output and does not analyze the PDFs you selected. Upload and live pipeline events can connect to M1; findings and review endpoints are still pending.</div><PipelineTimeline stages={stages} running={running} events={events} connected={connected} /><section className="facts-strip"><div><span>POLICY START</span><strong>{facts.policy_start}</strong></div><div><span>ADMISSION DATE</span><strong>{caseData.admission_date}</strong></div><div><span>WAITING PERIOD</span><strong>{facts.waiting_period_days} days</strong></div><div className="facts-rule"><span>DATE CHECK</span><strong>{days} days after start (fixture)</strong></div></section><section className="finding-summary"><div className="finding-icon">1</div><div className="finding-copy"><span className="step-kicker">REJECTION GROUND</span><h2>{finding.reason}</h2><p>{finding.assessment.replaceAll('_', ' ')} - cited clauses do not appear to support this ground in the sample facts.</p></div><span className="assessment-pill">{finding.assessment.replaceAll('_', ' ')} <small>MOCK</small></span></section><div className="evidence-grid"><EvidencePane kind="letter" finding={finding} /><EvidencePane kind="policy" finding={finding} /></div><div className="evidence-footnote"><ShieldIcon /><span>Highlighted text comes from the sample fixture. Actual PDF page and bounding-box highlighting awaits M4's document coordinates.</span></div><ReviewPanel status={reviewStatus} onReview={onReview} editText={editText} onEditText={onEditText} onSaveEdit={onSaveEdit} auditLog={auditLog} finding={finding} /></div>
 }
 
 function EvalPage() {
@@ -276,8 +281,8 @@ function App() {
 
   return <div className="app-shell"><Sidebar screen={screen} hasCase={caseStarted} onNavigate={(next) => setScreen(next)} /><main className="main-area"><Header crumb={screen === 'upload' ? 'New review' : screen === 'facts' ? 'Confirm facts' : screen === 'case' ? 'Evidence review' : 'Evaluation'} onHelp={showHelp} theme={theme} onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')} /><div className={`content-wrap ${screen === 'case' ? 'case-content' : ''}`}>
     {screen === 'upload' && <UploadPage policyName={policyName} letterName={letterName} policyInput={policyInput} letterInput={letterInput} onFile={onFile} onDrop={onDrop} onContinue={() => void startReview()} onDemo={loadDemo} error={error} loading={loading} />}
-    {screen === 'facts' && <FactsPage facts={facts} onChange={setFacts} onConfirm={() => void confirmFacts()} onBack={() => setScreen('upload')} stages={pipeline.stages} running={pipeline.running} />}
-    {screen === 'case' && <CasePage caseData={caseData} facts={facts} stages={pipeline.stages} running={pipeline.running} reviewStatus={reviewStatus} onReview={reviewAction} editText={editText} onEditText={setEditText} onSaveEdit={saveEdit} auditLog={auditLog} onBackToFacts={() => setScreen('facts')} />}
+    {screen === 'facts' && <FactsPage facts={facts} onChange={setFacts} onConfirm={() => void confirmFacts()} onBack={() => setScreen('upload')} stages={pipeline.stages} running={pipeline.running} events={live.events} connected={live.connected} />}
+    {screen === 'case' && <CasePage caseData={caseData} facts={facts} stages={pipeline.stages} running={pipeline.running} reviewStatus={reviewStatus} onReview={reviewAction} editText={editText} onEditText={setEditText} onSaveEdit={saveEdit} auditLog={auditLog} onBackToFacts={() => setScreen('facts')} events={live.events} connected={live.connected} />}
     {screen === 'eval' && <EvalPage />}
   </div></main></div>
 }
