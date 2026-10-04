@@ -1,0 +1,6 @@
+psycopg[binary]
+pgvector
+sentence-transformers
+groq
+google-genai
+python-dotenv
