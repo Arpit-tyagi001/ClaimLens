@@ -40,13 +40,24 @@ class Finding(SQLModel, table=True):
     __tablename__ = "findings"
     id: Optional[int] = Field(default=None, primary_key=True)
     finding_id: str = Field(index=True, unique=True)
-    case_id: str = Field(foreign_key="cases.case_id")
+    case_id: str = Field(foreign_key="cases.case_id", index=True)
     reason_id: str
-    assessment: str
-    confidence: float
-    reasoning: str
-    status: str = Field(default="PENDING_VERIFICATION")
-    evidence_json: str = Field(default="[]")
+    payload_json: str = Field(default="{}")
+    review_status: str = Field(default="PENDING")
+    edited_reasoning: Optional[str] = Field(default=None)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+class AuditLog(SQLModel, table=True):
+    __tablename__ = "audit_log"
+    id: Optional[int] = Field(default=None, primary_key=True)
+    case_id: str = Field(foreign_key="cases.case_id", index=True)
+    finding_id: Optional[str] = Field(default=None, index=True)
+    actor: str = Field(default="reviewer")
+    action: str
+    before_json: str
+    after_json: str
+    note: Optional[str] = Field(default=None)
+    ts: datetime = Field(default_factory=utc_now)
 
 class PipelineEvent(SQLModel, table=True):
     __tablename__ = "pipeline_events"

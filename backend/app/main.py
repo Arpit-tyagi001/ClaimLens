@@ -146,11 +146,12 @@ async def health_check():
     return {"status": "ok"}
 
 
-from backend.app.api import cases, events, facts
+from backend.app.api import cases, events, facts, review
 
 app.include_router(cases.router)
 app.include_router(events.router)
 app.include_router(facts.router)
+app.include_router(review.router)
 
 env = os.getenv("ENV", "dev")
 if env != "production":
