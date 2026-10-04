@@ -21,6 +21,7 @@ class Document(SQLModel, table=True):
     doc_id: str = Field(index=True, unique=True)
     case_id: str = Field(foreign_key="cases.case_id")
     doc_type: str 
+    filename: Optional[str] = Field(default=None)
     n_pages: Optional[int] = None
     has_text_layer: bool = True
 

@@ -131,7 +131,14 @@ async def get_case_detail(
         )
 
     docs = session.exec(select(Document).where(Document.case_id == case_id)).all()
-    documents_list = [{"doc_id": d.doc_id, "doc_type": d.doc_type} for d in docs]
+    documents_list = [
+        {
+            "doc_id": d.doc_id,
+            "doc_type": d.doc_type,
+            "file_url": f"/api/cases/{case_id}/documents/{d.doc_id}/file",
+        }
+        for d in docs
+    ]
 
     events = session.exec(
         select(PipelineEvent)

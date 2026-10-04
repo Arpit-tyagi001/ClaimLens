@@ -1,17 +1,20 @@
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from typing import Optional
 import uuid
 import time
 import os
+import logging
 from contextlib import asynccontextmanager
 
-# Import the DB initialization function
 from backend.app.db.session import create_db_and_tables
 
+logger = logging.getLogger("claimlens.main")
 
-# custom exception for pipeline Errors required by PRD
+
 class PipelineException(Exception):
     def __init__(
         self,
@@ -31,17 +34,14 @@ class PipelineException(Exception):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create the SQLite tables on startup
     create_db_and_tables()
     from backend.app.services.pipeline import recover_incomplete_cases
     recover_incomplete_cases()
     yield
 
 
-# Add the lifespan to the app factory
 app = FastAPI(title="ClaimLens API", version="1.0", lifespan=lifespan)
 
-# allowing front end to hit API (Crucial for member 2)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -51,7 +51,26 @@ app.add_middleware(
 )
 
 
-# uniform error handler
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
+    start_time = time.time()
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        logger.error(f"[{request_id}] Exception during request handling: {exc}", exc_info=exc)
+        response = JSONResponse(
+            status_code=500,
+            content={"error": {"code": "INTERNAL_ERROR", "message": "Something went wrong.", "stage": None}},
+        )
+    process_time = time.time() - start_time
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
+
+
+# 1. PipelineException Handler
 @app.exception_handler(PipelineException)
 async def pipeline_exception_handler(request: Request, exc: PipelineException):
     status_code = getattr(exc, "status_code", 400)
@@ -61,19 +80,67 @@ async def pipeline_exception_handler(request: Request, exc: PipelineException):
     )
 
 
-# Request ID and Middleware
-@app.middleware("http")
-async def add_request_id(request: Request, call_next):
-    request_id = str(uuid.uuid4())
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
+# 2. RequestValidationError Handler (FastAPI / Pydantic validation)
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    missing_or_invalid = []
+    for err in errors:
+        loc = [str(x) for x in err.get("loc", []) if x not in ("body", "query", "path")]
+        field_str = ".".join(loc) if loc else "field"
+        msg = err.get("msg", "invalid")
+        missing_or_invalid.append(f"{field_str}: {msg}")
+
+    summary = "; ".join(missing_or_invalid) if missing_or_invalid else "Invalid request payload"
+
+    path = request.url.path
+    stage = None
+    if "/api/cases" in path:
+        if "policy-facts" in path:
+            stage = "AWAITING_FACTS"
+        elif path.rstrip("/") == "/api/cases":
+            stage = "UPLOADED"
+
+    return JSONResponse(
+        status_code=422,
+        content={"error": {"code": "VALIDATION_ERROR", "message": summary, "stage": stage}},
+    )
+
+
+# 3. StarletteHTTPException Handler (404, 405, etc.)
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    code_map = {
+        400: "BAD_REQUEST",
+        404: "NOT_FOUND",
+        405: "METHOD_NOT_ALLOWED",
+        409: "CONFLICT",
+        413: "FILE_TOO_LARGE",
+        415: "INVALID_FILE_TYPE",
+        422: "VALIDATION_ERROR",
+        500: "INTERNAL_ERROR",
+    }
+    code = code_map.get(exc.status_code, f"HTTP_{exc.status_code}")
+    message = str(exc.detail) if exc.detail else "HTTP error"
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": {"code": code, "message": message, "stage": None}},
+    )
+
+
+# 4. Catch-all Exception Handler
+@app.exception_handler(Exception)
+async def catchall_exception_handler(request: Request, exc: Exception):
+    request_id = getattr(request.state, "request_id", "unknown")
+    logger.error(f"[{request_id}] Unhandled Exception: {exc}", exc_info=exc)
+    response = JSONResponse(
+        status_code=500,
+        content={"error": {"code": "INTERNAL_ERROR", "message": "Something went wrong.", "stage": None}},
+    )
     response.headers["X-Request-ID"] = request_id
-    response.headers["X-Process-Time"] = str(process_time)
     return response
 
 
-# basic health check to prove running server
 @app.get("/healthz")
 async def health_check():
     return {"status": "ok"}
