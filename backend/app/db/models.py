@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, UniqueConstraint
 from typing import Optional
 from datetime import datetime, timezone
 import json
@@ -10,7 +10,8 @@ class Case(SQLModel, table=True):
     __tablename__ = "cases"
     id: Optional[int] = Field(default=None, primary_key=True)
     case_id: str = Field(index=True, unique=True)
-    status: str = Field(default="UPLOADED") 
+    status: str = Field(default="UPLOADED")
+    facts_confirmed: bool = Field(default=False)
     created_at: datetime = Field(default_factory=utc_now)
 
 class Document(SQLModel, table=True):
@@ -47,6 +48,8 @@ class Finding(SQLModel, table=True):
 
 class PipelineEvent(SQLModel, table=True):
     __tablename__ = "pipeline_events"
+    __table_args__ = (UniqueConstraint("case_id", "seq", name="uq_case_id_seq"),)
+
     id: Optional[int] = Field(default=None, primary_key=True)
     case_id: str = Field(foreign_key="cases.case_id", index=True)
     seq: int = Field(index=True)
