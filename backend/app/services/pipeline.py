@@ -49,6 +49,29 @@ class StageStatus(str, Enum):
 class StageContext:
     case_id: str
     emit: Callable[..., None]
+    current_stage: Optional[str] = None
+
+    def record_metrics(
+        self,
+        model: Optional[str] = None,
+        tokens_in: Optional[int] = None,
+        tokens_out: Optional[int] = None,
+        stage: Optional[str] = None,
+    ) -> None:
+        stg = stage or self.current_stage
+        if not stg:
+            return
+        from backend.app.db.models import StageMetric
+        with Session(db_session.engine) as session:
+            metric = StageMetric(
+                case_id=self.case_id,
+                stage=stg,
+                model=model,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+            )
+            session.add(metric)
+            session.commit()
 
 
 StageFn = Callable[[StageContext], None | Awaitable[None]]
@@ -254,7 +277,8 @@ async def _execute_stage(case_id: str, stage: Stage, spec: StageSpec) -> None:
             dt = json.dumps(status_or_detail) if isinstance(status_or_detail, dict) else str(status_or_detail)
         emit_event(case_id, stage, st, dt)
 
-    ctx = StageContext(case_id=case_id, emit=_emit_progress)
+    stage_str = stage.value if isinstance(stage, Stage) else str(stage)
+    ctx = StageContext(case_id=case_id, emit=_emit_progress, current_stage=stage_str)
     total_attempts = spec.max_retries + 1
     last_exc: Optional[Exception] = None
 

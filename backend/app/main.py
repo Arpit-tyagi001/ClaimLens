@@ -216,12 +216,14 @@ async def readiness_check():
         )
 
 
-from backend.app.api import cases, events, facts, review
+from backend.app.api import cases, events, facts, review, draft, eval
 
 app.include_router(cases.router)
 app.include_router(events.router)
 app.include_router(facts.router)
 app.include_router(review.router)
+app.include_router(draft.router)
+app.include_router(eval.router)
 
 env = get_settings().ENV
 if env != "production":

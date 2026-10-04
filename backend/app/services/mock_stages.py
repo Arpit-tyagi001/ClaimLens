@@ -31,6 +31,8 @@ async def mock_extracting_stage(ctx: "StageContext") -> None:
     await asyncio.sleep(0.05)
     ctx.emit("RUNNING", "Extracting text and tables from rejection letter")
     await asyncio.sleep(0.05)
+    if hasattr(ctx, "record_metrics"):
+        ctx.record_metrics(model="mock")
 
 
 async def mock_investigating_stage(ctx: "StageContext") -> None:
@@ -52,6 +54,8 @@ async def mock_investigating_stage(ctx: "StageContext") -> None:
     await asyncio.sleep(0.05)
     ctx.emit("RUNNING", "Evaluating exclusions and precedent cases")
     await asyncio.sleep(0.05)
+    if hasattr(ctx, "record_metrics"):
+        ctx.record_metrics(model="mock")
 
 
 async def mock_investigating_fallback(ctx: "StageContext") -> None:
@@ -118,3 +122,5 @@ async def mock_verifying_stage(ctx: "StageContext") -> None:
     await asyncio.sleep(0.05)
     ctx.emit("RUNNING", "Performing adversarial consistency check")
     await asyncio.sleep(0.05)
+    if hasattr(ctx, "record_metrics"):
+        ctx.record_metrics(model="mock")

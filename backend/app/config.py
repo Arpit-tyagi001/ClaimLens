@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_UPLOAD_PER_MIN: int = 10
     RATE_LIMIT_REVIEW_PER_MIN: int = 60
     RATE_LIMIT_ENABLED: bool = True
+    EVAL_REPORT_PATH: str = "eval/report.json"
 
     # Stage timeouts and retries
     TIMEOUT_EXTRACTING: float = 30.0
