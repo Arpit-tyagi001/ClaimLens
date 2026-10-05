@@ -1,4 +1,93 @@
 Backend, API and pipeline orchestration (Member 1)
+## AI Investigation, Retrieval, Verification and Drafting (Member 3)
+
+`ai/claimlens_ai` provides the AI investigation, evidence retrieval, adversarial verification and drafting pipeline. It plugs into the backend as plain Python functions through the shared typed contracts.
+
+### What it does
+
+**Investigator**
+
+* Takes a rejection reason and case facts.
+* Searches relevant policy evidence.
+* Creates a structured finding with assessment, confidence, reasoning and evidence citations.
+* Uses the retrieval layer to ground findings in policy chunks.
+
+**Retrieval**
+
+The full retrieval implementation uses:
+
+* PostgreSQL
+* PostgreSQL full-text search
+* pgvector
+* Sentence Transformers embeddings
+* Reciprocal Rank Fusion (RRF)
+
+The retrieval pipeline combines lexical search and vector similarity to find relevant policy evidence.
+
+**Verifier**
+
+Every finding passes through deterministic verification before it can be used for drafting.
+
+The verifier:
+
+1. Checks that cited chunks exist.
+2. Checks that the quoted evidence is actually present in the cited chunk.
+3. Performs fact consistency checks.
+4. Runs one adversarial challenge.
+5. Allows exactly one investigator rebuttal.
+6. Applies a deterministic final verification decision.
+7. Ensures verification confidence cannot increase.
+
+Supported verification statuses:
+
+* `VERIFIED`
+* `DOWNGRADED`
+* `NEEDS_HUMAN`
+* `REJECTED_UNGROUNDED`
+
+A fabricated citation is rejected when the quoted text cannot be grounded in the cited policy chunk.
+
+**Drafting**
+
+The drafter uses only approved/verified findings and includes evidence chunk citations in the generated draft.
+
+### Fake Citation Verification
+
+The M3 test suite includes a fake-citation injection test:
+
+```bash
+python -m ai.claimlens_ai.test_verifier --inject-fake-citation
+```
+
+A genuine citation is verified successfully. When the citation is replaced with fabricated policy text, the verifier detects that the quote does not exist in the source chunk and returns:
+
+```text
+status: REJECTED_UNGROUNDED
+final_confidence: 0.0
+```
+
+This demonstrates that the verification layer does not blindly trust an AI-generated citation.
+
+### Runtime Requirements
+
+The complete M3 retrieval implementation requires a PostgreSQL environment with pgvector and Python dependencies including Sentence Transformers and PyTorch.
+
+The deployed submission uses **mock AI/retrieval stages** because the full PostgreSQL + pgvector + PyTorch stack is too resource-intensive for the available deployment environment.
+
+The complete implementation and local verification tests are available on the `member-3-ai` branch.
+
+### Scope and Safety
+
+ClaimLens uses synthetic claim and policy data for demonstration and evaluation.
+
+The system is not intended to:
+
+* provide legal advice;
+* predict whether an appeal will succeed;
+* make final real-world insurance decisions;
+* replace a qualified investigator or human reviewer.
+
+Verification confidence represents the strength of the available evidence and does not guarantee the correctness of a real-world insurance or legal decision.
 
 The FastAPI backend sits between the browser and the AI and document packages. It owns the API, the data model, the staged pipeline runner, live progress streaming, the human-review workflow and the audit trail. claimlens_docs (Member 4) and claimlens_ai (Member 3) plug in as plain Python functions through typed contracts.
 
