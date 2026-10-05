@@ -326,6 +326,10 @@ async def test_real_adapters_with_fakes(monkeypatch, setup_test_environment):
     fake_docs = create_fake_docs(has_text_layer=True)
     fake_ai = create_fake_ai(raise_error_once=False)
     monkeypatch.setitem(sys.modules, "claimlens_docs", fake_docs)
+    fake_docint = types.ModuleType("docint")
+    fake_docint.claimlens_docs = fake_docs
+    monkeypatch.setitem(sys.modules, "docint", fake_docint)
+    monkeypatch.setitem(sys.modules, "docint.claimlens_docs", fake_docs)
     monkeypatch.setitem(sys.modules, "claimlens_ai", fake_ai)
 
     transport = ASGITransport(app=app)
@@ -518,6 +522,10 @@ async def test_no_text_layer_stops_pipeline(monkeypatch, setup_test_environment)
 
     fake_docs = create_fake_docs(has_text_layer=False)
     monkeypatch.setitem(sys.modules, "claimlens_docs", fake_docs)
+    fake_docint = types.ModuleType("docint")
+    fake_docint.claimlens_docs = fake_docs
+    monkeypatch.setitem(sys.modules, "docint", fake_docint)
+    monkeypatch.setitem(sys.modules, "docint.claimlens_docs", fake_docs)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -556,6 +564,10 @@ async def test_transient_error_in_real_adapter_retries(monkeypatch, setup_test_e
     fake_docs = create_fake_docs(has_text_layer=True)
     fake_ai = create_fake_ai(raise_error_once=True)
     monkeypatch.setitem(sys.modules, "claimlens_docs", fake_docs)
+    fake_docint = types.ModuleType("docint")
+    fake_docint.claimlens_docs = fake_docs
+    monkeypatch.setitem(sys.modules, "docint", fake_docint)
+    monkeypatch.setitem(sys.modules, "docint.claimlens_docs", fake_docs)
     monkeypatch.setitem(sys.modules, "claimlens_ai", fake_ai)
 
     transport = ASGITransport(app=app)
@@ -805,6 +817,10 @@ async def test_honest_mode_label_and_api_keys_privacy(monkeypatch, caplog, setup
     fake_docs = create_fake_docs(has_text_layer=True)
     fake_ai = create_fake_ai()
     monkeypatch.setitem(sys.modules, "claimlens_docs", fake_docs)
+    fake_docint = types.ModuleType("docint")
+    fake_docint.claimlens_docs = fake_docs
+    monkeypatch.setitem(sys.modules, "docint", fake_docint)
+    monkeypatch.setitem(sys.modules, "docint.claimlens_docs", fake_docs)
     monkeypatch.setitem(sys.modules, "claimlens_ai", fake_ai)
 
     transport = ASGITransport(app=app)
