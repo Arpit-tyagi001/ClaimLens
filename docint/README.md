@@ -41,7 +41,7 @@ accepts them. Extra fields are optional.
 From the repo root:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt PyMuPDF==1.28.2 RapidFuzz==3.14.6
 pytest -q                      # backend + docint tests (pytest.ini)
 python -m eval.run             # writes eval/report.json, served by GET /api/eval/latest
 python -m eval.run --gate      # exits 1 if a metric drops below target (CI)

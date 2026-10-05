@@ -17,7 +17,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install ruff mypy
+          # docint's own packages; the shared requirements.txt is merged after submission
+          pip install PyMuPDF==1.28.2 RapidFuzz==3.14.6 ruff mypy
       - name: Lint docint; type-check docint and contracts
         run: |
           ruff check --line-length 120 --select E,F,W,I,B --target-version py311 --config 'lint.isort.known-first-party=["docint","eval","contracts","backend","ai"]' docint eval

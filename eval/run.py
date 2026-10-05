@@ -254,8 +254,9 @@ def summary_fields(report: dict) -> dict:
     recall = _hits(pipe["recall_at_3"]) if pipe["measured"] else (None, None)
     verdict = _hits(pipe["verdict_agreement"]) if pipe["measured"] else (None, None)
     notes = (
-        f"Synthetic benchmark: {report['num_cases']} cases and {report['num_policies']} policies written by "
-        f"the team, {report['supported_cases']} cases where the rejection is supported. "
+        f"Small synthetic set, exact counts, not accuracy on real claims: {report['num_cases']} cases and "
+        f"{report['num_policies']} policies written by the team, {report['supported_cases']} cases where the "
+        "rejection is supported. "
         "extraction = rejection-letter fields and reason categories match gold. "
         "grounding = real policy quotes (verbatim, reformatted, one typo) accepted by locate_quote. "
         "injected = fabricated quotes (invented, number changed, negated, spliced) rejected by locate_quote."

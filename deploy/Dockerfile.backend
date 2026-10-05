@@ -14,7 +14,8 @@ RUN useradd --create-home --uid 10001 app
 
 # Dependencies first so code edits do not reinstall them. (pip reads the UTF-16 file fine.)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# docint's own packages are installed separately until the shared requirements.txt is merged.
+RUN pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir PyMuPDF==1.28.2 RapidFuzz==3.14.6
 
 # Copies backend/, contracts/, docint/, eval/ and ai/ (when present). See .dockerignore.
 COPY . .
