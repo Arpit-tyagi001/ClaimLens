@@ -1,0 +1,20 @@
+{
+  "case_id": "case_10",
+  "synthetic": true,
+  "policy": "synthetic_policy_2",
+  "description": "Room rent above the Rs. 4,000 per day sub-limit of the second policy; the deduction is supported.",
+  "letter_fields": {
+    "claim_number": "SFH/CL/2025/0310",
+    "policy_number": "SFH-2023-004521",
+    "admission_date": "2025-03-02",
+    "amount_claimed": "62500"
+  },
+  "reasons": [
+    {
+      "category": "limit_exceeded",
+      "gold_clause_ids": ["5.1"],
+      "gold_verdict": "SUPPORTED",
+      "why": "Clause 5.1 caps room rent at Rs. 4,000 per day; Rs. 6,000 per day was charged."
+    }
+  ]
+}

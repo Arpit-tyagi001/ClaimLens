@@ -1,0 +1,23 @@
+NEURAL NEXUS SYNTHETIC HEALTH INSURANCE
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 25/11/2024
+Claim No: CLM/2024/0003
+Policy No: NNH/2024/100001
+Patient: Synthetic Patient C
+Date of Admission: 12/11/2024
+Date of Discharge: 16/11/2024
+Amount Claimed: Rs. 1,25,000/-
+
+Subject: Repudiation of your claim
+
+Dear Policyholder,
+
+We regret to inform you that your claim has been repudiated for the following reason(s):
+
+1. The admission was for complications of Type 2 diabetes, a pre-existing disease diagnosed in March 2021, and falls within the 36 months waiting period under Clause 4.3 read with Clause 3.1.
+
+You may write to our Grievance Cell within 15 days if you disagree with this decision.
+
+Yours sincerely,
+Claims Manager (synthetic)

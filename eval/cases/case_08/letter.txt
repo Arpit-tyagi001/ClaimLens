@@ -1,0 +1,23 @@
+NEURAL NEXUS SYNTHETIC HEALTH INSURANCE
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 25/10/2024
+Claim No: CLM/2024/0008
+Policy No: NNH/2024/100001
+Patient: Synthetic Patient H
+Date of Admission: 06/10/2024
+Date of Discharge: 10/10/2024
+Amount Claimed: Rs. 54,000/-
+
+Subject: Repudiation of your claim
+
+Dear Policyholder,
+
+We regret to inform you that your claim has been repudiated for the following reason(s):
+
+1. The discharge summary has not been submitted, therefore the claim is rejected as per Clause 7.2.
+
+You may write to our Grievance Cell within 15 days if you disagree with this decision.
+
+Yours sincerely,
+Claims Manager (synthetic)

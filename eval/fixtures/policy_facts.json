@@ -1,0 +1,43 @@
+{
+  "policy_start": "2024-04-01",
+  "policy_end": "2025-03-31",
+  "sum_insured": 500000.0,
+  "waiting_periods": [
+    {
+      "kind": "initial",
+      "months": 1,
+      "chunk_id": "pol-c-0003",
+      "days": 30
+    },
+    {
+      "kind": "specified_disease",
+      "months": 24,
+      "chunk_id": "pol-c-0004",
+      "days": null
+    },
+    {
+      "kind": "pre_existing",
+      "months": 36,
+      "chunk_id": "pol-c-0005",
+      "days": null
+    }
+  ],
+  "confirmed_by_user": false,
+  "policy_no": "NNH/2024/100001",
+  "first_inception_date": "2023-04-01",
+  "room_rent_limit_per_day": 5000.0,
+  "source_chunk_ids": {
+    "policy_number": "pol-c-0000",
+    "first_inception_date": "pol-c-0000",
+    "period_start": "pol-c-0000",
+    "period_end": "pol-c-0000",
+    "sum_insured": "pol-c-0000",
+    "room_rent_limit_per_day": "pol-c-0010",
+    "initial_waiting": "pol-c-0003",
+    "specified_disease_waiting": "pol-c-0004",
+    "pre_existing_waiting": "pol-c-0005"
+  },
+  "notes": [
+    "Room rent limit computed as 1% of sum insured"
+  ]
+}

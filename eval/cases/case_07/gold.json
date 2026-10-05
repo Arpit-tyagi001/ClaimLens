@@ -1,0 +1,19 @@
+{
+  "case_id": "case_07",
+  "synthetic": true,
+  "description": "Room rent is above the limit, but Clause 6.1 allows only a proportionate deduction, not rejecting the whole claim.",
+  "letter_fields": {
+    "claim_number": "CLM/2024/0007",
+    "policy_number": "NNH/2024/100001",
+    "admission_date": "2024-07-22",
+    "amount_claimed": "96000"
+  },
+  "reasons": [
+    {
+      "category": "limit_exceeded",
+      "gold_clause_ids": ["6.1"],
+      "gold_verdict": "PARTIAL",
+      "why": "The limit is exceeded (Rs. 8,000 > Rs. 5,000 per day), so a deduction is supported, but Clause 6.1 says the rest of the claim remains payable."
+    }
+  ]
+}

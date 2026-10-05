@@ -1,0 +1,23 @@
+NEURAL NEXUS SYNTHETIC HEALTH INSURANCE
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 26/08/2024
+Claim No: CLM/2024/0005
+Policy No: NNH/2024/100001
+Patient: Synthetic Patient E
+Date of Admission: 14/08/2024
+Date of Discharge: 15/08/2024
+Amount Claimed: Rs. 85,000/-
+
+Subject: Repudiation of your claim
+
+Dear Policyholder,
+
+We regret to inform you that your claim has been repudiated for the following reason(s):
+
+1. Rhinoplasty performed for cosmetic reasons is a permanent exclusion under Clause 5.1. The hospital records show no accident, burns, cancer or certificate of medical necessity.
+
+You may write to our Grievance Cell within 15 days if you disagree with this decision.
+
+Yours sincerely,
+Claims Manager (synthetic)

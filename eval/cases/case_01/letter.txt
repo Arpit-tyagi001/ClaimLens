@@ -1,0 +1,24 @@
+NEURAL NEXUS SYNTHETIC HEALTH INSURANCE
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 20/01/2025
+Claim No: CLM/2025/0001
+Policy No: NNH/2024/100001
+Patient: Synthetic Patient A
+Date of Admission: 10/01/2025
+Date of Discharge: 11/01/2025
+Amount Claimed: Rs. 45,000/-
+
+Subject: Repudiation of your claim
+
+Dear Policyholder,
+
+We have reviewed your claim. We regret to inform you that it has been repudiated for the following reason(s):
+
+1. The treatment of cataract in the left eye falls within the 24 months waiting period for specified diseases under Clause 4.2 of the policy.
+2. The amount claimed is above the cataract sub-limit of Rs. 40,000/- per eye under Clause 6.2.
+
+You may write to our Grievance Cell within 15 days if you disagree with this decision.
+
+Yours sincerely,
+Claims Manager (synthetic)

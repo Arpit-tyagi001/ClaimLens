@@ -1,0 +1,19 @@
+{
+  "case_id": "case_06",
+  "synthetic": true,
+  "description": "Plastic surgery exclusion cited, but the surgery was reconstruction after an accident, which Clause 5.1 allows.",
+  "letter_fields": {
+    "claim_number": "CLM/2024/0006",
+    "policy_number": "NNH/2024/100001",
+    "admission_date": "2024-12-03",
+    "amount_claimed": "110000"
+  },
+  "reasons": [
+    {
+      "category": "exclusion",
+      "gold_clause_ids": ["5.1"],
+      "gold_verdict": "NOT_SUPPORTED",
+      "why": "Clause 5.1 excludes plastic surgery unless it is reconstruction following an accident; the letter itself records a road traffic accident."
+    }
+  ]
+}

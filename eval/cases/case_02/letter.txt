@@ -1,0 +1,23 @@
+NEURAL NEXUS SYNTHETIC HEALTH INSURANCE
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 02/07/2024
+Claim No: CLM/2024/0002
+Policy No: NNH/2024/100001
+Patient: Synthetic Patient B
+Date of Admission: 18/06/2024
+Date of Discharge: 22/06/2024
+Amount Claimed: Rs. 62,500/-
+
+Subject: Repudiation of your claim
+
+Dear Policyholder,
+
+We regret to inform you that your claim has been repudiated for the following reason:
+
+1. The hospitalisation for dengue fever occurred during the initial 30 days waiting period under Clause 4.1 of the policy.
+
+You may write to our Grievance Cell within 15 days if you disagree with this decision.
+
+Yours sincerely,
+Claims Manager (synthetic)

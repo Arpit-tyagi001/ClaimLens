@@ -1,0 +1,33 @@
+# Backend image (FastAPI + claimlens_docs + claimlens_ai). Build context = repo root.
+#   docker build -f deploy/Dockerfile.backend -t claimlens-backend .
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    ENV=production \
+    UPLOAD_DIR=/data/uploads \
+    EVAL_REPORT_PATH=/app/eval/report.json
+
+WORKDIR /app
+RUN useradd --create-home --uid 10001 app
+
+# Dependencies first so code edits do not reinstall them. (pip reads the UTF-16 file fine.)
+COPY requirements.txt .
+# docint's own packages are installed separately until the shared requirements.txt is merged.
+RUN pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir PyMuPDF==1.28.2 RapidFuzz==3.14.6
+
+# Copies backend/, contracts/, docint/, eval/ and ai/ (when present). See .dockerignore.
+COPY . .
+
+# /data holds uploads and, while the backend still uses SQLite, the database file.
+# Mount a persistent disk there in production.
+RUN mkdir -p /data/uploads && chown -R app:app /app /data
+VOLUME ["/data"]
+
+USER app
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4)"
+# One worker on purpose: pipeline state and SSE live in this process.
+CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]

@@ -1,0 +1,19 @@
+{
+  "case_id": "case_04",
+  "synthetic": true,
+  "description": "Called pre-existing, but under this policy's definition a diagnosis in 2016 is too early to count.",
+  "letter_fields": {
+    "claim_number": "CLM/2024/0004",
+    "policy_number": "NNH/2024/100001",
+    "admission_date": "2024-09-05",
+    "amount_claimed": "38000"
+  },
+  "reasons": [
+    {
+      "category": "pre_existing",
+      "gold_clause_ids": ["3.1", "4.3"],
+      "gold_verdict": "NOT_SUPPORTED",
+      "why": "Clause 3.1 only counts a diagnosis within 48 months before inception, i.e. on or after 01/04/2019. A 2016 diagnosis is outside that window."
+    }
+  ]
+}

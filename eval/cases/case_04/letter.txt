@@ -1,0 +1,23 @@
+NEURAL NEXUS SYNTHETIC HEALTH INSURANCE
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 16/09/2024
+Claim No: CLM/2024/0004
+Policy No: NNH/2024/100001
+Patient: Synthetic Patient D
+Date of Admission: 05/09/2024
+Date of Discharge: 07/09/2024
+Amount Claimed: Rs. 38,000/-
+
+Subject: Repudiation of your claim
+
+Dear Policyholder,
+
+We regret to inform you that your claim has been repudiated for the following reason(s):
+
+1. The treatment of hypothyroidism is excluded as a pre-existing disease under Clause 4.3, since the condition was first diagnosed in 2016.
+
+You may write to our Grievance Cell within 15 days if you disagree with this decision.
+
+Yours sincerely,
+Claims Manager (synthetic)

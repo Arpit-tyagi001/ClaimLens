@@ -1,0 +1,19 @@
+{
+  "case_id": "case_02",
+  "synthetic": true,
+  "description": "Initial 30-day waiting period cited, but the first policy started more than a year earlier.",
+  "letter_fields": {
+    "claim_number": "CLM/2024/0002",
+    "policy_number": "NNH/2024/100001",
+    "admission_date": "2024-06-18",
+    "amount_claimed": "62500"
+  },
+  "reasons": [
+    {
+      "category": "waiting_period",
+      "gold_clause_ids": ["4.1"],
+      "gold_verdict": "NOT_SUPPORTED",
+      "why": "Inception 01/04/2023 + 30 days = 01/05/2023. Admission 18/06/2024 is long after it."
+    }
+  ]
+}

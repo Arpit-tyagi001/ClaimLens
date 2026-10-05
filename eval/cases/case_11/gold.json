@@ -1,0 +1,20 @@
+{
+  "case_id": "case_11",
+  "synthetic": true,
+  "policy": "synthetic_policy_2",
+  "description": "Dental treatment rejected as excluded, but Clause 4.1 covers dental treatment that needs hospitalisation after an accident.",
+  "letter_fields": {
+    "claim_number": "SFH/CL/2025/0042",
+    "policy_number": "SFH-2023-004521",
+    "admission_date": "2025-01-08",
+    "amount_claimed": "48000"
+  },
+  "reasons": [
+    {
+      "category": "exclusion",
+      "gold_clause_ids": ["4.1"],
+      "gold_verdict": "NOT_SUPPORTED",
+      "why": "Clause 4.1 excludes dental treatment unless it requires hospitalisation following an accident; the insured was hospitalised after a road accident."
+    }
+  ]
+}

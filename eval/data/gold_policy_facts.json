@@ -1,0 +1,11 @@
+{
+  "policy_number": "NNH/2024/100001",
+  "first_inception_date": "2023-04-01",
+  "period_start": "2024-04-01",
+  "period_end": "2025-03-31",
+  "sum_insured": "500000",
+  "initial_waiting": {"value": 30, "unit": "days"},
+  "specified_disease_waiting": {"value": 24, "unit": "months"},
+  "pre_existing_waiting": {"value": 36, "unit": "months"},
+  "room_rent_limit_per_day": "5000"
+}

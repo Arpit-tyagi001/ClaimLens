@@ -1,0 +1,19 @@
+{
+  "case_id": "case_08",
+  "synthetic": true,
+  "description": "Rejected for a missing document only 15 days after discharge, before the 30-day window and the reminder required by Clause 7.3.",
+  "letter_fields": {
+    "claim_number": "CLM/2024/0008",
+    "policy_number": "NNH/2024/100001",
+    "admission_date": "2024-10-06",
+    "amount_claimed": "54000"
+  },
+  "reasons": [
+    {
+      "category": "missing_documents",
+      "gold_clause_ids": ["7.2", "7.3"],
+      "gold_verdict": "NOT_SUPPORTED",
+      "why": "Discharge 10/10/2024, letter 25/10/2024: only 15 days, inside the 30-day window, and no reminder was sent as Clause 7.3 requires."
+    }
+  ]
+}

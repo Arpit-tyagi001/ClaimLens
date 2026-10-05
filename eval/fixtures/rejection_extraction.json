@@ -1,0 +1,41 @@
+{
+  "claim_no": "CLM/2025/0001",
+  "policy_no": "NNH/2024/100001",
+  "admission_date": "2025-01-10",
+  "discharge_date": "2025-01-11",
+  "claimed_amount": 45000.0,
+  "rejected_amount": null,
+  "reasons": [
+    {
+      "reason_id": "r1",
+      "text": "The treatment of cataract in the left eye falls within the 24 months waiting period for specified diseases under Clause 4.2 of the policy.",
+      "category": "waiting_period",
+      "page": 1,
+      "bbox": [
+        56.0,
+        289.2,
+        435.1,
+        317.0
+      ],
+      "clause_refs": [
+        "4.2"
+      ]
+    },
+    {
+      "reason_id": "r2",
+      "text": "The amount claimed is above the cataract sub-limit of Rs. 40,000/- per eye under Clause 6.2.",
+      "category": "limit_exceeded",
+      "page": 1,
+      "bbox": [
+        56.0,
+        317.2,
+        459.5,
+        345.0
+      ],
+      "clause_refs": [
+        "6.2"
+      ]
+    }
+  ],
+  "letter_date": "2025-01-20"
+}
