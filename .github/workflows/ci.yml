@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python:
+    name: Python tests (backend, docint, ai) and eval gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install ruff mypy
+      - name: Lint and type-check docint
+        run: |
+          ruff check --line-length 120 --select E,F,W,I,B --target-version py311 docint eval
+          mypy docint/claimlens_docs --ignore-missing-imports
+      - name: Tests from repo root (pytest.ini sets pythonpath and testpaths)
+        run: pytest -q
+      - name: AI tests (ai/claimlens_ai)
+        if: hashFiles('ai/claimlens_ai/*.py') != ''
+        run: pytest -q ai/claimlens_ai
+      - name: Evaluation on synthetic cases (fails if a metric drops below target)
+        run: python -m eval.run --gate
+      - name: Upload eval report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: eval/report.json
+
+  frontend:
+    name: Frontend type-check and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build  # tsc -b && vite build
+
+  secrets:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    name: Docker images and compose file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker build -f deploy/Dockerfile.backend -t claimlens-backend .
+      - run: docker build -f deploy/Dockerfile.frontend -t claimlens-frontend .
+      - name: Backend container answers /healthz
+        run: |
+          docker run -d --name be -p 8000:8000 -e MOCK_AI=true -e MOCK_DOCS=true claimlens-backend
+          for i in $(seq 1 30); do curl -fs http://localhost:8000/healthz && exit 0; sleep 2; done
+          docker logs be; exit 1

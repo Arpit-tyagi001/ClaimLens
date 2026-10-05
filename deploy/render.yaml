@@ -1,0 +1,56 @@
+# Render blueprint for ClaimLens. In the Render dashboard: New > Blueprint, path deploy/render.yaml.
+#
+# Check on your account before relying on this:
+# - Persistent disks are only available on paid instance types, so the backend uses `starter`.
+#   On the free plan, remove the `disk` block: uploads and the SQLite file are then lost on every
+#   restart or redeploy (fine for a demo, not for keeping cases).
+# - Render Postgres offers the pgvector extension; run `CREATE EXTENSION IF NOT EXISTS vector;` once.
+services:
+  - type: web
+    name: claimlens-backend
+    runtime: docker
+    dockerfilePath: ./deploy/Dockerfile.backend
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /healthz
+    disk:
+      name: claimlens-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: claimlens-db
+          property: connectionString
+      - key: UPLOAD_DIR
+        value: /data/uploads
+      - key: CORS_ORIGINS
+        value: https://claimlens-frontend.onrender.com
+      - key: MOCK_AI
+        value: "false"
+      - key: MOCK_DOCS
+        value: "false"
+      - key: LLM_PROVIDER
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false  # set in the dashboard, never in the repo
+      - key: GEMINI_API_KEY
+        sync: false
+
+  - type: web
+    name: claimlens-frontend
+    runtime: docker
+    dockerfilePath: ./deploy/Dockerfile.frontend
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: BACKEND_URL
+        value: https://claimlens-backend.onrender.com
+
+databases:
+  - name: claimlens-db
+    plan: free
+    databaseName: claimlens
+    user: claimlens

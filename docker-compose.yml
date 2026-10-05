@@ -1,3 +1,5 @@
+# ClaimLens local stack: `docker compose up --build`, then open http://localhost:5173
+# `docker compose up db` starts only Postgres + pgvector (for M3's retrieval).
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -16,5 +18,39 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.backend
+    environment:
+      ENV: dev
+      DATABASE_URL: postgresql+psycopg://claimlens:claimlens_pass@db:5432/claimlens
+      CORS_ORIGINS: http://localhost:5173
+      MOCK_AI: ${MOCK_AI:-true}
+      MOCK_DOCS: ${MOCK_DOCS:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.frontend
+    environment:
+      BACKEND_URL: http://backend:8000
+    ports:
+      - "5173:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+
 volumes:
   postgres_data:
+  backend_data:
