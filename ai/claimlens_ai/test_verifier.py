@@ -60,7 +60,7 @@ def main():
         case_id="case-001",
         rejection=rejection,
         facts={},
-        emit=lambda event: print("EVENT:", event),
+        emit=lambda event, data=None: print("EVENT:", event, data),
     )
 
     print()
@@ -77,11 +77,7 @@ def main():
     verified = run_verification(
         case_id="case-001",
         findings=findings,
-        emit=lambda stage, detail: print(
-            "EVENT:",
-            stage,
-            detail,
-        ),
+        emit = lambda event, data=None: print(f"EVENT: {event}", data),
         inject_fake_citation=False,
     )
 

@@ -55,8 +55,11 @@ class RuleCheck(BaseModel):
 class CitationCheck(BaseModel):
     chunk_id: str
     grounded: bool
-    details: str
-
+    page: Optional[int] = None
+    bbox: Optional[List[float]] = None
+    quote: Optional[str] = None
+    match_score: Optional[float] = None
+    details: str = ""
 
 class FactCheck(BaseModel):
     fact: str
@@ -76,8 +79,8 @@ class Finding(BaseModel):
     confidence: float
     reasoning: str
     evidence: List[Evidence]
-    facts_used: List[Fact] = [] # Placeholder for now
-    rule_checks: List[RuleCheck] = [] # Placeholder for now
+    facts_used: List[Fact] = Field(default_factory=list) # Placeholder for now
+    rule_checks: List[RuleCheck] = Field(default_factory=list) # Placeholder for now
 
 class Challenge(BaseModel):
     round: int
@@ -87,8 +90,8 @@ class Challenge(BaseModel):
     outcome: Literal["UPHELD", "WEAKENED", "OVERTURNED"]
 
 class VerifiedFinding(Finding):
-    citation_checks: List[CitationCheck] = [] 
-    fact_checks: List[FactCheck] = []
+    citation_checks: List[CitationCheck] = Field(default_factory=list)
+    fact_checks: List[FactCheck] = Field(default_factory=list)
     challenges: List[Challenge]
     status: Literal["VERIFIED", "DOWNGRADED", "NEEDS_HUMAN", "REJECTED_UNGROUNDED"]
     final_assessment: str

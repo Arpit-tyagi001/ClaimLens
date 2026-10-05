@@ -28,6 +28,19 @@ class Hit:
 # PostgreSQL configuration
 # =========================================================
 
+# Priority:
+# 1. RETRIEVAL_DATABASE_URL
+# 2. DATABASE_URL
+# 3. Existing POSTGRES_* variables
+#
+# This allows M1 backend to keep using DATABASE_URL
+# while M3 retrieval can use a separate PostgreSQL database.
+
+RETRIEVAL_DATABASE_URL = (
+    os.getenv("RETRIEVAL_DATABASE_URL")
+    or os.getenv("DATABASE_URL")
+)
+
 DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
 DB_PORT = int(os.getenv("POSTGRES_PORT", "5433"))
 DB_NAME = os.getenv("POSTGRES_DB", "claimlens")
@@ -64,7 +77,15 @@ def get_embedding_model() -> SentenceTransformer:
 def get_connection():
     """
     Create a PostgreSQL connection.
+
+    Priority:
+        RETRIEVAL_DATABASE_URL
+        DATABASE_URL
+        POSTGRES_* environment variables
     """
+
+    if RETRIEVAL_DATABASE_URL:
+        return psycopg.connect(RETRIEVAL_DATABASE_URL)
 
     return psycopg.connect(
         host=DB_HOST,
@@ -436,6 +457,38 @@ def build_index(
     _RETRIEVERS[case_id] = PostgresRetriever(
         case_id
     )
+
+
+# =========================================================
+# Delete retrieval index
+# =========================================================
+
+def delete_index(
+    case_id: str,
+) -> None:
+    """
+    Delete all indexed chunks and embeddings for a case.
+
+    This is used when a case is deleted or when TTL
+    cleanup permanently removes a case.
+    """
+
+    with get_connection() as conn:
+
+        with conn.cursor() as cur:
+
+            cur.execute(
+                """
+                DELETE FROM retrieval_chunks
+                WHERE case_id = %s
+                """,
+                (case_id,),
+            )
+
+        conn.commit()
+
+    # Remove cached retriever for this case.
+    _RETRIEVERS.pop(case_id, None)
 
 
 # =========================================================
