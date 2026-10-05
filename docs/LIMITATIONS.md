@@ -49,6 +49,32 @@ ClaimLens is a hackathon MVP built in about 30 hours. It uses production-style e
 ### Evaluation
 - `GET /api/eval/latest` only serves the stored report. The backend does not compute metrics. Any figures come from a small synthetic set and are not general accuracy.
 
+## Document intelligence limitations (docint, M4)
+
+### Ingestion and sections
+- Scanned pages are detected (`pages_without_text`, `has_text_layer`) but not read: there is no OCR.
+- Sections are found by numbering, heading font size and all-caps lines. Two-column layouts, tables and running headers or footers are not handled and can end up inside a clause chunk.
+- Heading lines are not chunks, so a quote of a heading alone is not grounded.
+
+### Extraction
+- Letter and policy extraction use regular expressions and keywords. Unusual wording or tables may give empty or wrong fields; every policy fact is shown to the user to confirm or correct.
+- Reason categories come from keywords. A reason that mentions two categories gets the first match in a fixed order (pre-existing, waiting period, missing documents, limit, exclusion); anything else goes to a human.
+- Only English, and only day-first Indian date formats. A waiting period stated in days is rounded to whole months in `months` and kept exactly in `days`.
+
+### Grounding (`locate_quote`)
+- A close fuzzy match is rejected if any number or meaning word (not, only, unless, excluded, covered, ...) differs. A fabricated quote that changes only an ordinary word and stays above 90% similar would still be accepted.
+- Highlight boxes cover the whole chunk (clause or letter line) that contains the quote, not the exact words. A quote that crosses a page break is boxed on its first page only.
+- `locate_quote(doc_id, ...)` looks documents up in an in-process registry filled by `ingest_document`; another process must call `register_document` first (for example after loading chunks from the database).
+
+### Evaluation data
+- 9 synthetic cases and one synthetic policy, written by the team; 3 cases where the rejection is supported. The extraction rules were written while looking at these letters, so extraction scores on this set are optimistic.
+- The PDFs in `eval/data/pdf/` are rendered by our own script (`eval/make_pdfs.py`). Real insurer PDFs will be harder.
+- The injected-fault benchmark uses a fixed set of fabricated quotes. Catching all of them shows the grounding gate works on these kinds of fakes, not that every hallucination is caught.
+
+### Safety
+- PII masking covers phone numbers, email, Aadhaar-like and PAN-like numbers. It misses names and addresses and may mask a harmless 10- or 12-digit number.
+- The prompt-injection guard flags common instruction-like phrases and always wraps document text as delimited data. That reduces, not removes, the risk.
+
 ## Roadmap (not done)
 - Move to PostgreSQL with pgvector, Alembic migrations and a `SELECT ... FOR UPDATE SKIP LOCKED` job queue.
 - Wire the real `claimlens_docs` and `claimlens_ai` packages and run the whole flow with the mock switches off.
