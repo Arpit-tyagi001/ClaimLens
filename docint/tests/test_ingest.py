@@ -103,3 +103,18 @@ def test_pdf_with_no_text_layer(tmp_path):
 def test_unknown_doc_type(tmp_path):
     with pytest.raises(ValueError):
         ingest_document(str(render_text_pdf("x", tmp_path / "x.pdf")), "x", "invoice")
+
+
+def test_second_policy_pdf_sections_and_facts(tmp_path):
+    from eval.run import POLICY_2_PATH
+
+    pdf = render_text_pdf(POLICY_2_PATH.read_text(encoding="utf-8"), tmp_path / "p2.pdf")
+    doc = ingest_document(str(pdf), "p2", "policy")
+    paths = [c.section_path for c in doc.chunks]
+    assert "3 Waiting Periods > 3.3" in paths  # "PART 3 - WAITING PERIODS" and "3.3." numbering
+    assert "4 General Exclusions > 4.1" in paths
+    facts = extract_policy_facts(doc)
+    assert facts.policy_start == date(2024, 6, 15)
+    assert {w.kind: w.months for w in facts.waiting_periods} == {
+        "initial": 3, "specified_disease": 12, "pre_existing": 48,
+    }

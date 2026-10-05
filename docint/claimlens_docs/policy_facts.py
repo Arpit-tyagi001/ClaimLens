@@ -52,13 +52,19 @@ class PolicyFacts:
 
 PATTERNS = {
     "policy_number": re.compile(r"Policy\s*(?:No\b\.?|Number)\s*[:\-]?\s*([A-Z0-9][A-Z0-9/\-]+)", re.I),
+    # "First Policy Inception Date: ..." or "Date of First Inception: ..."
     "first_inception_date": re.compile(
-        rf"(?:First\s+)?(?:Policy\s+)?Inception\s+Date\s*[:\-]?\s*({DATE_TEXT})", re.I
+        r"(?:(?:First\s+)?(?:Policy\s+)?Inception\s+Date|Date\s+of\s+(?:First\s+)?(?:Policy\s+)?Inception)"
+        rf"\s*[:\-]?\s*({DATE_TEXT})",
+        re.I,
     ),
     "sum_insured": re.compile(rf"Sum\s+Insured\s*[:\-]?\s*({AMOUNT_TEXT})", re.I),
 }
+# "Policy Period: ..." or "Period of Insurance / Cover: From ... to ..."
 PERIOD = re.compile(
-    rf"Policy\s+Period\s*[:\-]?\s*(?:From\s+)?({DATE_TEXT})\s*(?:to|till|until|-)\s*({DATE_TEXT})", re.I
+    r"(?:Policy\s+Period|Period\s+of\s+(?:Insurance|Cover(?:age)?|Policy))"
+    rf"\s*[:\-]?\s*(?:From\s+)?({DATE_TEXT})\s*(?:to|till|until|-)\s*({DATE_TEXT})",
+    re.I,
 )
 DURATION = re.compile(r"(\d+)\s*(days?|months?|years?)\b", re.I)
 PERCENT_OF_SI = re.compile(r"(\d+(?:\.\d+)?)\s*%\s*of\s+(?:the\s+)?sum\s+insured", re.I)

@@ -61,3 +61,16 @@ def test_correction_can_fill_a_missing_fact():
 def test_unknown_correction_is_rejected():
     with pytest.raises(KeyError):
         apply_corrections(extract_policy_facts(POLICY), {"favourite_colour": "blue"})
+
+
+def test_second_policy_style_field_names():
+    """'Date of First Inception' and 'Period of Insurance: From ... to ...' (synthetic_policy_2.txt)."""
+    from eval.run import POLICY_2_PATH
+
+    facts = extract_policy_facts(POLICY_2_PATH.read_text(encoding="utf-8"))
+    assert facts.first_inception_date.value == date(2022, 6, 15)
+    assert facts.period_start.value == date(2024, 6, 15)
+    assert facts.period_end.value == date(2025, 6, 14)
+    assert facts.initial_waiting.value == 90 and facts.initial_waiting.unit == "days"
+    assert facts.pre_existing_waiting.value == 48
+    assert facts.room_rent_limit_per_day.value == Decimal("4000")
