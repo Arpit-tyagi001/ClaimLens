@@ -20,7 +20,7 @@ jobs:
           pip install ruff mypy
       - name: Lint docint; type-check docint and contracts
         run: |
-          ruff check --line-length 120 --select E,F,W,I,B --target-version py311 docint eval
+          ruff check --line-length 120 --select E,F,W,I,B --target-version py311 --config 'lint.isort.known-first-party=["docint","eval","contracts","backend","ai"]' docint eval
           mypy docint/claimlens_docs --ignore-missing-imports
           mypy contracts --ignore-missing-imports
       - name: Tests from repo root (pytest.ini sets pythonpath and testpaths)

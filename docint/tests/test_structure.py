@@ -1,5 +1,4 @@
 from docint.claimlens_docs.structure import DEFINITION, EXCLUSION, WAITING_PERIOD, Line, build_chunks, lines_from_text
-
 from eval.run import POLICY_PATH
 
 POLICY = """SAMPLE POLICY

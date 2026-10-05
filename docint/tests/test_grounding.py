@@ -1,7 +1,7 @@
 import pytest
+
 from docint.claimlens_docs.grounding import locate_quote, normalise, quote_in_text
 from docint.claimlens_docs.ingest import ingest_text
-
 from eval.run import POLICY_PATH
 
 POLICY_TEXT = POLICY_PATH.read_text(encoding="utf-8")

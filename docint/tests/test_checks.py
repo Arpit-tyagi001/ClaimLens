@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+
 from docint.claimlens_docs.rules import (
     add_months,
     amount_within_limit,

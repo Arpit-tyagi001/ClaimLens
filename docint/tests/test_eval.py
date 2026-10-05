@@ -1,7 +1,6 @@
 import json
 
 from docint.claimlens_docs.grounding import quote_in_text
-
 from eval.faults import build_probes, exact_match_grounding, run_benchmark
 from eval.metrics import Count, case_verdict_agrees, recall_at_k
 from eval.run import POLICY_PATH, gate_failures, load_cases, main

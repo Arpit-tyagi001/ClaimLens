@@ -1,7 +1,7 @@
 import pytest
+
 from docint.claimlens_docs import sanitize_for_llm
 from docint.claimlens_docs.security.injection import CLOSE_TAG, OPEN_TAG, detect_injection, wrap_as_data
-
 from eval.run import POLICY_PATH, load_cases
 
 

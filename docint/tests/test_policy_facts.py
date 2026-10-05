@@ -2,8 +2,8 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-from docint.claimlens_docs.policy_facts import apply_corrections, extract_policy_facts
 
+from docint.claimlens_docs.policy_facts import apply_corrections, extract_policy_facts
 from eval.run import POLICY_PATH
 
 POLICY = POLICY_PATH.read_text(encoding="utf-8")

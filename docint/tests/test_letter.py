@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+
 from docint.claimlens_docs.letter import (
     EXCLUSION,
     LIMIT_EXCEEDED,

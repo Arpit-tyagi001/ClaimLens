@@ -8,7 +8,6 @@ pytest.importorskip("pymupdf")
 
 from docint.claimlens_docs import extract_policy_facts, extract_rejection, ingest_document, locate_quote  # noqa: E402
 from docint.claimlens_docs.ingest import document_text  # noqa: E402
-
 from eval.make_pdfs import render_text_pdf  # noqa: E402
 from eval.run import CASES_DIR, POLICY_PATH  # noqa: E402
 
