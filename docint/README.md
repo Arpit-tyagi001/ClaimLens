@@ -46,7 +46,7 @@ pytest -q                      # backend + docint tests (pytest.ini)
 python -m eval.run             # writes eval/report.json, served by GET /api/eval/latest
 python -m eval.run --gate      # exits 1 if a metric drops below target (CI)
 python -m eval.make_pdfs       # renders eval/data/*.txt to eval/data/pdf/
-python -m eval.make_fixtures   # regenerates contracts/fixtures/*.json from the PDFs
+python -m eval.make_fixtures   # regenerates eval/fixtures/*.json from the PDFs
 ```
 
 Retrieval recall@3 and verdict agreement need the AI pipeline's output:

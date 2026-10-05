@@ -1,8 +1,8 @@
 """Write the contract fixtures from the synthetic PDFs (work division, H2-4 task).
 
-    python -m eval.make_fixtures          # writes contracts/fixtures/*.json
+    python -m eval.make_fixtures          # writes eval/fixtures/*.json
 
-Writes into contracts/fixtures/. The files are
+Writes into eval/fixtures/ (contracts/ is frozen; copy them there once the team agrees). The files are
 produced by the real code, so M1, M2 and M3 build against true shapes.
 """
 
@@ -13,7 +13,7 @@ from docint.claimlens_docs import extract_policy_facts, extract_rejection, inges
 from .make_pdfs import OUT_DIR
 from .make_pdfs import main as make_pdfs
 
-FIXTURES_DIR = Path(__file__).parent.parent / "contracts" / "fixtures"
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 def _write(name: str, model) -> None:
