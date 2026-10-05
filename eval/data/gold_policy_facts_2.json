@@ -1,0 +1,11 @@
+{
+  "policy_number": "SFH-2023-004521",
+  "first_inception_date": "2022-06-15",
+  "period_start": "2024-06-15",
+  "period_end": "2025-06-14",
+  "sum_insured": "300000",
+  "initial_waiting": {"value": 90, "unit": "days"},
+  "specified_disease_waiting": {"value": 12, "unit": "months"},
+  "pre_existing_waiting": {"value": 48, "unit": "months"},
+  "room_rent_limit_per_day": "4000"
+}

@@ -8,7 +8,7 @@ numbers are the same on every run.
 import re
 from dataclasses import dataclass
 
-CLAUSE_LINE = re.compile(r"^(\d+\.\d+)\s+(.+)$", re.M)
+CLAUSE_LINE = re.compile(r"^(\d+\.\d+)\.?\s+(.+)$", re.M)  # "4.2 text" or "4.2. text"
 
 # Clauses that sound plausible but do not exist in the synthetic policy.
 INVENTED = [
@@ -25,6 +25,11 @@ NEGATIONS = [
     ("unless it is for", "including when it is for"),
     ("may reject the claim only if", "may reject the claim if"),
     ("the rest of the claim remains payable", "the whole claim is not payable"),
+    # synthetic_policy_2.txt
+    ("shall not be liable", "shall be liable"),
+    ("is covered only after", "is covered after"),
+    ("unless it requires", "even if it requires"),
+    ("unless prescribed", "even when prescribed"),
 ]
 
 

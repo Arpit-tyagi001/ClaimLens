@@ -1,0 +1,19 @@
+SURAKSHA HEALTH INSURANCE - CLAIMS DEPARTMENT
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 20-Jan-2025
+Claim Number: SFH/CL/2025/0042
+Policy Number: SFH-2023-004521
+Insured Person: Synthetic Patient K
+Date of Admission: 08-Jan-2025
+Date of Discharge: 10-Jan-2025
+Amount Claimed: INR 48,000
+
+Dear Insured,
+
+We have examined the documents submitted with your claim for jaw surgery and dental repair after a road accident. Your claim is denied because dental treatment is a general exclusion under Clause 4.1 of your policy.
+
+You may ask for a review within 15 days of this letter.
+
+Regards,
+Claims Team (synthetic)

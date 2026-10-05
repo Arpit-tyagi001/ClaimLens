@@ -1,0 +1,23 @@
+SURAKSHA HEALTH INSURANCE - CLAIMS DEPARTMENT
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 2nd April 2025
+Claim Number: SFH/CL/2025/0310
+Policy Number: SFH-2023-004521
+Insured Person: Synthetic Patient J
+Date of Admission: 2nd March 2025
+Date of Discharge: 5th March 2025
+Amount Claimed: ₹ 62,500
+
+Subject: Partial settlement of your claim
+
+Dear Insured,
+
+Your claim has been settled in part. The following reason applies to the amount not paid:
+
+1. Room rent of Rs. 6,000/- per day was charged, which exceeds the room rent limit of Rs. 4,000/- per day under Clause 5.1 of the policy.
+
+For any clarification, please contact our helpline.
+
+Regards,
+Claims Team (synthetic)

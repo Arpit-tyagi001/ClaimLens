@@ -67,8 +67,8 @@ ClaimLens is a hackathon MVP built in about 30 hours. It uses production-style e
 - `locate_quote(doc_id, ...)` looks documents up in an in-process registry filled by `ingest_document`; another process must call `register_document` first (for example after loading chunks from the database).
 
 ### Evaluation data
-- 9 synthetic cases and one synthetic policy, written by the team; 3 cases where the rejection is supported. The extraction rules were written while looking at these letters, so extraction scores on this set are optimistic.
-- The PDFs in `eval/data/pdf/` are rendered by our own script (`eval/make_pdfs.py`). Real insurer PDFs will be harder.
+- 11 synthetic cases and two synthetic policies in different styles, written by the team; 4 cases where the rejection is supported. The extraction rules were written while looking at these letters, so extraction scores on this set are optimistic.
+- The PDFs in `eval/data/pdf/` are rendered by our own script (`eval/make_pdfs.py`). Real insurer PDFs will be harder. The script's built-in font has no rupee sign, so "₹" becomes "INR" in those PDFs; "₹" is only tested on plain text.
 - The injected-fault benchmark uses a fixed set of fabricated quotes. Catching all of them shows the grounding gate works on these kinds of fakes, not that every hallucination is caught.
 
 ### Safety

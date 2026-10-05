@@ -28,6 +28,13 @@ EVAL_DIR = Path(__file__).parent
 CASES_DIR = EVAL_DIR / "cases"
 POLICY_PATH = EVAL_DIR / "data" / "synthetic_policy.txt"
 GOLD_FACTS_PATH = EVAL_DIR / "data" / "gold_policy_facts.json"
+POLICY_2_PATH = EVAL_DIR / "data" / "synthetic_policy_2.txt"
+GOLD_FACTS_2_PATH = EVAL_DIR / "data" / "gold_policy_facts_2.json"
+# The two demo policies, written in different styles (numbering, headings, field names).
+POLICIES = {
+    "synthetic_policy": (POLICY_PATH, GOLD_FACTS_PATH),
+    "synthetic_policy_2": (POLICY_2_PATH, GOLD_FACTS_2_PATH),
+}
 
 TARGETS = {  # from PRD section 5
     "letter_extraction": 7 / 8,
@@ -93,19 +100,56 @@ def eval_letters_pdf(cases: list[dict]) -> dict:
 
 
 def eval_policy_facts() -> dict:
-    gold = json.loads(GOLD_FACTS_PATH.read_text(encoding="utf-8"))
-    facts = extract_policy_facts(POLICY_PATH.read_text(encoding="utf-8"))
+    """Every gold fact of both demo policies, counted together."""
     count, failures = Count(), {}
-    for name, expected in gold.items():
-        fact = getattr(facts, name)
-        if isinstance(expected, dict):
-            got = None if fact is None else {"value": fact.value, "unit": fact.unit}
-        else:
-            got = None if fact is None else str(fact.value)
-        count.add(got == expected)
-        if got != expected:
-            failures[name] = {"expected": expected, "got": got}
+    for policy_name, (policy_path, gold_path) in POLICIES.items():
+        gold = json.loads(gold_path.read_text(encoding="utf-8"))
+        facts = extract_policy_facts(policy_path.read_text(encoding="utf-8"))
+        for name, expected in gold.items():
+            fact = getattr(facts, name)
+            if isinstance(expected, dict):
+                got = None if fact is None else {"value": fact.value, "unit": fact.unit}
+            else:
+                got = None if fact is None else str(fact.value)
+            count.add(got == expected)
+            if got != expected:
+                failures[f"{policy_name}.{name}"] = {"expected": expected, "got": got}
     return {"matched": str(count), "ratio": count.ratio, "failures": failures}
+
+
+def fault_benchmark(grounding_fn) -> dict:
+    """Injected-fault benchmark on both demo policies, with totals and a per-policy split."""
+    per_policy = {name: run_benchmark(path.read_text(encoding="utf-8"), grounding_fn)
+                  for name, (path, _) in POLICIES.items()}
+
+    def total(key: str) -> tuple[int, int]:
+        hits = [_hits(r[key]) for r in per_policy.values()]
+        return sum(h for h, _ in hits), sum(t for _, t in hits)
+
+    def merge(key: str) -> dict:
+        kinds: dict[str, list[int]] = {}
+        for r in per_policy.values():
+            for kind, count in r[key].items():
+                h, t = _hits(count)
+                kinds.setdefault(kind, [0, 0])
+                kinds[kind][0] += h
+                kinds[kind][1] += t
+        return {k: f"{h} of {t}" for k, (h, t) in kinds.items()}
+
+    caught, fakes = total("fakes_caught")
+    accepted, reals = total("real_quotes_accepted")
+    return {
+        "fakes_caught": f"{caught} of {fakes}",
+        "catch_rate": caught / fakes if fakes else 0.0,
+        "real_quotes_accepted": f"{accepted} of {reals}",
+        "false_alarms": reals - accepted,
+        "by_kind": merge("by_kind"),
+        "real_by_kind": merge("real_by_kind"),
+        "by_policy": {name: {"fakes_caught": r["fakes_caught"], "real_quotes_accepted": r["real_quotes_accepted"]}
+                      for name, r in per_policy.items()},
+        "missed_examples": [ex for r in per_policy.values() for ex in r["missed_examples"]],
+        "false_alarm_examples": [ex for r in per_policy.values() for ex in r["false_alarm_examples"]],
+    }
 
 
 def eval_predictions(cases: list[dict], predictions: dict | None) -> dict:
@@ -162,7 +206,6 @@ def main(argv: list[str] | None = None) -> dict:
     cases = load_cases()
     predictions = json.loads(args.predictions.read_text(encoding="utf-8")) if args.predictions else None
     grounding_fn, grounding_name = load_grounding(args.grounding)
-    policy_text = POLICY_PATH.read_text(encoding="utf-8")
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -173,7 +216,8 @@ def main(argv: list[str] | None = None) -> dict:
         "letter_extraction_pdf": eval_letters_pdf(cases),
         "policy_facts": eval_policy_facts(),
         "pipeline": eval_predictions(cases, predictions),
-        "fault_benchmark": {"grounding_fn": grounding_name, **run_benchmark(policy_text, grounding_fn)},
+        "num_policies": len(POLICIES),
+        "fault_benchmark": {"grounding_fn": grounding_name, **fault_benchmark(grounding_fn)},
         "targets": TARGETS,
     }
     report = {**summary_fields(report), **report}
@@ -210,8 +254,8 @@ def summary_fields(report: dict) -> dict:
     recall = _hits(pipe["recall_at_3"]) if pipe["measured"] else (None, None)
     verdict = _hits(pipe["verdict_agreement"]) if pipe["measured"] else (None, None)
     notes = (
-        f"Synthetic benchmark: {report['num_cases']} cases written by the team, "
-        f"{report['supported_cases']} where the rejection is supported. "
+        f"Synthetic benchmark: {report['num_cases']} cases and {report['num_policies']} policies written by "
+        f"the team, {report['supported_cases']} cases where the rejection is supported. "
         "extraction = rejection-letter fields and reason categories match gold. "
         "grounding = real policy quotes (verbatim, reformatted, one typo) accepted by locate_quote. "
         "injected = fabricated quotes (invented, number changed, negated, spliced) rejected by locate_quote."

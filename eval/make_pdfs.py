@@ -5,10 +5,16 @@
 Headings (all-caps lines and "SECTION n." lines) are drawn bold and larger,
 long lines are wrapped, and a blank line becomes a paragraph gap, like a
 typical insurer document.
+
+The built-in PDF fonts have no rupee sign, so "₹" is written as "INR" in the
+rendered PDF. The text-only eval still covers "₹".
 """
 
 import textwrap
 from pathlib import Path
+
+# Characters the built-in Helvetica font cannot draw, and what we write instead.
+UNSUPPORTED = {"₹": "INR "}
 
 EVAL_DIR = Path(__file__).parent
 OUT_DIR = EVAL_DIR / "data" / "pdf"
@@ -34,6 +40,8 @@ def render_text_pdf(text: str, path: Path, blank_pages: int = 0) -> Path:
     page = pdf.new_page(width=PAGE_W, height=PAGE_H)
     y = MARGIN
 
+    for old_char, replacement in UNSUPPORTED.items():
+        text = text.replace(old_char, replacement)
     for raw in text.splitlines():
         if not raw.strip():
             y += PARAGRAPH_GAP
@@ -62,8 +70,9 @@ def render_text_pdf(text: str, path: Path, blank_pages: int = 0) -> Path:
 
 
 def main() -> None:
-    policy = (EVAL_DIR / "data" / "synthetic_policy.txt").read_text(encoding="utf-8")
-    print(render_text_pdf(policy, OUT_DIR / "synthetic_policy.pdf"))
+    for name in ("synthetic_policy", "synthetic_policy_2"):
+        policy = (EVAL_DIR / "data" / f"{name}.txt").read_text(encoding="utf-8")
+        print(render_text_pdf(policy, OUT_DIR / f"{name}.pdf"))
     for folder in sorted(p for p in (EVAL_DIR / "cases").iterdir() if p.is_dir()):
         letter = (folder / "letter.txt").read_text(encoding="utf-8")
         print(render_text_pdf(letter, OUT_DIR / f"{folder.name}_letter.pdf"))
