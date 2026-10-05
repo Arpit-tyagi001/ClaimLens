@@ -39,6 +39,35 @@ class Evidence(BaseModel):
     quote: str
     page: int
     section_path: str
+    
+class Fact(BaseModel):
+    name: str
+    value: Any
+    source: Optional[str] = None
+
+
+class RuleCheck(BaseModel):
+    rule: str
+    passed: bool
+    details: str
+
+
+class CitationCheck(BaseModel):
+    chunk_id: str
+    grounded: bool
+    details: str
+
+
+class FactCheck(BaseModel):
+    fact: str
+    passed: bool
+    details: str
+
+
+class Draft(BaseModel):
+    case_id: str
+    text: str
+    finding_ids: List[str]
 
 class Finding(BaseModel):
     finding_id: str
@@ -47,8 +76,8 @@ class Finding(BaseModel):
     confidence: float
     reasoning: str
     evidence: List[Evidence]
-    facts_used: List[Any] = [] # Placeholder for now
-    rule_checks: List[Any] = [] # Placeholder for now
+    facts_used: List[Fact] = [] # Placeholder for now
+    rule_checks: List[RuleCheck] = [] # Placeholder for now
 
 class Challenge(BaseModel):
     round: int
@@ -58,8 +87,8 @@ class Challenge(BaseModel):
     outcome: Literal["UPHELD", "WEAKENED", "OVERTURNED"]
 
 class VerifiedFinding(Finding):
-    citation_checks: List[Any] = [] 
-    fact_checks: List[Any] = []
+    citation_checks: List[CitationCheck] = [] 
+    fact_checks: List[FactCheck] = []
     challenges: List[Challenge]
     status: Literal["VERIFIED", "DOWNGRADED", "NEEDS_HUMAN", "REJECTED_UNGROUNDED"]
     final_assessment: str

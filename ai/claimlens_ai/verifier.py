@@ -6,34 +6,25 @@ from pydantic import BaseModel, Field
 
 from contracts.schemas import (
     Challenge,
+    CitationCheck,
+    FactCheck,
     Finding,
     VerifiedFinding,
 )
 
+from .retrieval import get_retriever
+from .tools import ClaimLensTools
 from .llm import (
     LLMClient,
     LLMError,
     create_gemini_provider,
     create_groq_provider,
 )
-from .tools import ClaimLensTools
 
 
 # ============================================================
 # LLM RESPONSE MODELS
 # ============================================================
-
-
-class CitationCheck(BaseModel):
-    chunk_id: str
-    grounded: bool
-    details: str
-
-
-class FactCheck(BaseModel):
-    check: str
-    passed: bool
-    details: str
 
 
 class AdversaryResponse(BaseModel):
@@ -69,25 +60,18 @@ def _check_citations(
         ]
 
         if not matching_chunks:
-
             checks.append(
                 CitationCheck(
                     chunk_id=evidence.chunk_id,
                     grounded=False,
-                    details=(
-                        "Referenced chunk does not exist."
-                    ),
+                    details="Referenced chunk does not exist.",
                 )
             )
-
             continue
 
         chunk = matching_chunks[0]
 
-        grounded = (
-            evidence.quote.strip()
-            in chunk.text
-        )
+        grounded = evidence.quote.strip() in chunk.text
 
         checks.append(
             CitationCheck(
@@ -115,11 +99,9 @@ def _check_facts(
 
     return [
         FactCheck(
-            check="basic_fact_presence",
+            fact="basic_fact_presence",
             passed=True,
-            details=(
-                "No contradictory facts detected."
-            ),
+            details="No contradictory facts detected.",
         )
     ]
 
@@ -135,7 +117,6 @@ def _build_adversary_prompt(
 ) -> str:
 
     if hits:
-
         policy_context = "\n\n".join(
             (
                 f"CHUNK_ID: {hit.chunk_id}\n"
@@ -143,12 +124,8 @@ def _build_adversary_prompt(
             )
             for hit in hits
         )
-
     else:
-
-        policy_context = (
-            "NO RETRIEVED POLICY CHUNKS AVAILABLE."
-        )
+        policy_context = "NO RETRIEVED POLICY CHUNKS AVAILABLE."
 
     return f"""
 You are the ADVERSARY in the ClaimLens
@@ -298,25 +275,20 @@ def _run_adversary(
         for hit in hits
     }
 
-    # Gemini = Adversary
     llm = LLMClient(
         provider=create_gemini_provider(),
         max_retries=1,
     )
 
     try:
-
         response = llm.generate_structured(
-
             prompt=_build_adversary_prompt(
                 finding,
                 hits,
             ),
-
             response_model=AdversaryResponse,
         )
 
-        # Keep only real retrieved chunk IDs.
         attacker_chunk_ids = [
             chunk_id
             for chunk_id in response.attacker_chunk_ids
@@ -330,21 +302,13 @@ def _run_adversary(
             "WEAKENED",
             "OVERTURNED",
         }:
-
             outcome = "UPHELD"
 
         return Challenge(
-
             round=1,
-
             attacker_argument=response.attack,
-
-            attacker_chunk_ids=(
-                attacker_chunk_ids
-            ),
-
+            attacker_chunk_ids=attacker_chunk_ids,
             rebuttal=None,
-
             outcome=outcome,
         )
 
@@ -354,20 +318,14 @@ def _run_adversary(
             f"GEMINI ADVERSARY ERROR: {exc}"
         )
 
-        # Safe deterministic fallback.
         return Challenge(
-
             round=1,
-
             attacker_argument=(
                 "Adversarial verification could not "
                 "identify a reliable contradiction."
             ),
-
             attacker_chunk_ids=[],
-
             rebuttal=None,
-
             outcome="UPHELD",
         )
 
@@ -383,30 +341,24 @@ def _run_rebuttal(
     challenge: Challenge,
 ) -> Challenge:
 
-    # Groq = Investigator
     client = LLMClient(
         provider=create_groq_provider(),
         max_retries=1,
     )
 
     try:
-
         response = client.generate_structured(
-
             prompt=_build_rebuttal_prompt(
                 finding,
                 challenge,
             ),
-
             response_model=RebuttalResponse,
         )
 
         return challenge.model_copy(
-
             update={
                 "rebuttal": response.rebuttal,
             }
-
         )
 
     except LLMError as exc:
@@ -416,14 +368,12 @@ def _run_rebuttal(
         )
 
         return challenge.model_copy(
-
             update={
                 "rebuttal": (
                     "The original finding remains "
                     "based on the cited evidence."
                 )
             }
-
         )
 
 
@@ -437,29 +387,24 @@ def _inject_fake_citation(
 ) -> Finding:
 
     if not finding.evidence:
-
         return finding
 
-    fake_evidence = (
-        finding.evidence[0].model_copy(
-            update={
-                "quote": (
-                    "THIS IS A FABRICATED POLICY CLAUSE "
-                    "THAT DOES NOT EXIST."
-                )
-            }
-        )
+    fake_evidence = finding.evidence[0].model_copy(
+        update={
+            "quote": (
+                "THIS IS A FABRICATED POLICY CLAUSE "
+                "THAT DOES NOT EXIST."
+            )
+        }
     )
 
     return finding.model_copy(
-
         update={
             "evidence": [
                 fake_evidence,
                 *finding.evidence[1:],
             ]
         }
-
     )
 
 
@@ -471,11 +416,13 @@ def _inject_fake_citation(
 def run_verification(
     case_id: str,
     findings: list[Finding],
-    tools: ClaimLensTools,
-    facts: Any = None,
     emit: Any = None,
     inject_fake_citation: bool = False,
 ) -> list[VerifiedFinding]:
+
+    # M3 owns retrieval/tool dependencies internally.
+    retriever = get_retriever(case_id)
+    tools = ClaimLensTools(retriever)
 
     verified: list[VerifiedFinding] = []
 
@@ -483,9 +430,9 @@ def run_verification(
 
         finding = original_finding
 
-        # ----------------------------------------------------
-        # OPTIONAL RED-TEAM ATTACK
-        # ----------------------------------------------------
+        # ====================================================
+        # OPTIONAL FAKE CITATION ATTACK
+        # ====================================================
 
         if inject_fake_citation:
 
@@ -494,35 +441,27 @@ def run_verification(
             )
 
             if emit:
-
                 emit(
+                    "VERIFYING",
                     {
-                        "event": (
-                            "fake_citation_injected"
-                        ),
+                        "message": "fake citation injected",
                         "case_id": case_id,
-                        "finding_id": (
-                            finding.finding_id
-                        ),
-                    }
+                        "finding_id": finding.finding_id,
+                    },
                 )
 
-        # ----------------------------------------------------
+        # ====================================================
         # VERIFICATION START
-        # ----------------------------------------------------
+        # ====================================================
 
         if emit:
-
             emit(
+                "VERIFYING",
                 {
-                    "event": (
-                        "verification_started"
-                    ),
+                    "message": "verification started",
                     "case_id": case_id,
-                    "finding_id": (
-                        finding.finding_id
-                    ),
-                }
+                    "finding_id": finding.finding_id,
+                },
             )
 
         # ====================================================
@@ -539,53 +478,35 @@ def run_verification(
             for check in citation_checks
         )
 
-        # ----------------------------------------------------
+        # ====================================================
         # REJECT UNGROUNDED FINDING
-        # ----------------------------------------------------
+        # ====================================================
 
         if not all_grounded:
 
             result = VerifiedFinding(
-
                 **finding.model_dump(),
-
-                citation_checks=(
-                    citation_checks
-                ),
-
+                citation_checks=citation_checks,
                 fact_checks=[],
-
                 challenges=[],
-
-                status=(
-                    "REJECTED_UNGROUNDED"
-                ),
-
-                final_assessment=(
-                    "INSUFFICIENT_EVIDENCE"
-                ),
-
+                status="REJECTED_UNGROUNDED",
+                final_assessment="INSUFFICIENT_EVIDENCE",
                 final_confidence=0.0,
             )
 
             verified.append(result)
 
             if emit:
-
                 emit(
+                    "VERIFYING",
                     {
-                        "event": (
-                            "verification_completed"
+                        "message": (
+                            "finding rejected: "
+                            "citation not grounded"
                         ),
                         "case_id": case_id,
-                        "finding_id": (
-                            finding.finding_id
-                        ),
-                        "status": (
-                            "REJECTED_UNGROUNDED"
-                        ),
-                        "final_confidence": 0.0,
-                    }
+                        "finding_id": finding.finding_id,
+                    },
                 )
 
             continue
@@ -595,89 +516,87 @@ def run_verification(
         # ====================================================
 
         fact_checks = _check_facts(
-            facts
+            finding.facts_used
         )
 
         # ====================================================
         # C. GEMINI ADVERSARY
         # ====================================================
 
+        if emit:
+            emit(
+                "VERIFYING",
+                {
+                    "message": (
+                        "adversary challenge started"
+                    ),
+                    "case_id": case_id,
+                    "finding_id": finding.finding_id,
+                },
+            )
+
         challenge = _run_adversary(
-
             finding,
-
             tools,
         )
 
         if emit:
-
             emit(
+                "VERIFYING",
                 {
-                    "event": (
-                        "adversary_challenge"
+                    "message": (
+                        "adversary challenge completed"
                     ),
                     "case_id": case_id,
-                    "finding_id": (
-                        finding.finding_id
-                    ),
-                    "outcome": (
-                        challenge.outcome
-                    ),
-                }
+                    "finding_id": finding.finding_id,
+                    "outcome": challenge.outcome,
+                },
             )
 
         # ====================================================
-        # EXACTLY ONE GROQ REBUTTAL
+        # D. EXACTLY ONE GROQ REBUTTAL
         # ====================================================
 
+        if emit:
+            emit(
+                "VERIFYING",
+                {
+                    "message": (
+                        "investigator rebuttal started"
+                    ),
+                    "case_id": case_id,
+                    "finding_id": finding.finding_id,
+                },
+            )
+
         challenge = _run_rebuttal(
-
             finding,
-
             challenge,
         )
 
         if emit:
-
             emit(
+                "VERIFYING",
                 {
-                    "event": (
-                        "investigator_rebuttal"
+                    "message": (
+                        "investigator rebuttal completed"
                     ),
                     "case_id": case_id,
-                    "finding_id": (
-                        finding.finding_id
-                    ),
-                }
+                    "finding_id": finding.finding_id,
+                },
             )
 
         # ====================================================
-        # D. DETERMINISTIC JUDGE
+        # E. DETERMINISTIC JUDGE
         # ====================================================
 
-        original_confidence = (
-            finding.confidence
-        )
-
-        # ----------------------------------------------------
-        # UPHELD
-        # ----------------------------------------------------
+        original_confidence = finding.confidence
 
         if challenge.outcome == "UPHELD":
 
-            final_confidence = (
-                original_confidence
-            )
-
+            final_confidence = original_confidence
             status = "VERIFIED"
-
-            final_assessment = (
-                finding.assessment
-            )
-
-        # ----------------------------------------------------
-        # WEAKENED
-        # ----------------------------------------------------
+            final_assessment = finding.assessment
 
         elif challenge.outcome == "WEAKENED":
 
@@ -693,76 +612,44 @@ def run_verification(
             )
 
             status = "DOWNGRADED"
-
             final_assessment = "PARTIAL"
-
-        # ----------------------------------------------------
-        # OVERTURNED
-        # ----------------------------------------------------
 
         else:
 
             final_confidence = 0.0
-
             status = "NEEDS_HUMAN"
-
-            final_assessment = (
-                "INSUFFICIENT_EVIDENCE"
-            )
+            final_assessment = "INSUFFICIENT_EVIDENCE"
 
         # ====================================================
-        # BUILD VERIFIED FINDING
+        # F. BUILD VERIFIED FINDING
         # ====================================================
 
         result = VerifiedFinding(
-
             **finding.model_dump(),
-
-            citation_checks=(
-                citation_checks
-            ),
-
-            fact_checks=(
-                fact_checks
-            ),
-
-            challenges=[
-                challenge
-            ],
-
+            citation_checks=citation_checks,
+            fact_checks=fact_checks,
+            challenges=[challenge],
             status=status,
-
-            final_assessment=(
-                final_assessment
-            ),
-
-            final_confidence=(
-                final_confidence
-            ),
+            final_assessment=final_assessment,
+            final_confidence=final_confidence,
         )
 
         verified.append(result)
 
-        # ----------------------------------------------------
+        # ====================================================
         # VERIFICATION COMPLETE
-        # ----------------------------------------------------
+        # ====================================================
 
         if emit:
-
             emit(
+                "VERIFYING",
                 {
-                    "event": (
-                        "verification_completed"
-                    ),
+                    "message": "verification completed",
                     "case_id": case_id,
-                    "finding_id": (
-                        finding.finding_id
-                    ),
+                    "finding_id": finding.finding_id,
                     "status": status,
-                    "final_confidence": (
-                        final_confidence
-                    ),
-                }
+                    "final_confidence": final_confidence,
+                },
             )
 
     return verified

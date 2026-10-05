@@ -14,7 +14,7 @@ from ai.claimlens_ai.retrieval import get_retriever
 from ai.claimlens_ai.tools import ClaimLensTools
 
 
-Emit = Callable[[dict], None]
+Emit = Callable[[str, dict], None]
 
 MAX_TOOL_STEPS = 6
 
@@ -428,12 +428,13 @@ def run_investigation(
     category = classify_reason(rejection.text)
 
     emit(
+        "INVESTIGATING",
         {
             "event": "investigator_classified",
             "case_id": case_id,
             "reason_id": rejection.reason_id,
             "category": category,
-        }
+        },
     )
 
     retriever = get_retriever(case_id)
@@ -463,20 +464,18 @@ def run_investigation(
     ):
 
         emit(
+            "INVESTIGATING",
             {
                 "event": "investigator_step",
                 "case_id": case_id,
                 "reason_id": rejection.reason_id,
                 "step": step_number,
                 "max_steps": MAX_TOOL_STEPS,
-            }
+            },
         )
 
         # =================================================
         # STEP 1: MANDATORY POLICY RETRIEVAL
-        #
-        # We do NOT allow the LLM to skip retrieval.
-        # This prevents premature "finish" decisions.
         # =================================================
 
         if step_number == 1:
@@ -503,16 +502,16 @@ def run_investigation(
             tool_history.append(result)
 
             emit(
+                "INVESTIGATING",
                 {
                     "event": "tool_called",
                     "case_id": case_id,
                     "tool": "search_policy",
                     "step": step_number,
                     "result_count": len(hits),
-                }
+                },
             )
 
-            # Move to the next Investigator step.
             continue
 
         # =================================================
@@ -536,12 +535,13 @@ def run_investigation(
         except LLMError as exc:
 
             emit(
+                "INVESTIGATING",
                 {
                     "event": "investigator_llm_error",
                     "case_id": case_id,
                     "reason_id": rejection.reason_id,
                     "error": str(exc),
-                }
+                },
             )
 
             evidence = _build_evidence(
@@ -557,6 +557,7 @@ def run_investigation(
             )
 
             emit(
+                "INVESTIGATING",
                 {
                     "event": "finding_created",
                     "case_id": case_id,
@@ -564,7 +565,7 @@ def run_investigation(
                     "assessment": finding.assessment,
                     "confidence": finding.confidence,
                     "evidence_count": len(finding.evidence),
-                }
+                },
             )
 
             return [finding]
@@ -578,12 +579,13 @@ def run_investigation(
             final_step = decision
 
             emit(
+                "INVESTIGATING",
                 {
                     "event": "investigator_finished",
                     "case_id": case_id,
                     "reason_id": rejection.reason_id,
                     "step": step_number,
-                }
+                },
             )
 
             break
@@ -616,13 +618,14 @@ def run_investigation(
             tool_history.append(result)
 
             emit(
+                "INVESTIGATING",
                 {
                     "event": "tool_called",
                     "case_id": case_id,
                     "tool": "search_policy",
                     "step": step_number,
                     "result_count": len(hits),
-                }
+                },
             )
 
             continue
@@ -652,13 +655,14 @@ def run_investigation(
             tool_history.append(result)
 
             emit(
+                "INVESTIGATING",
                 {
                     "event": "tool_called",
                     "case_id": case_id,
                     "tool": "get_section",
                     "step": step_number,
                     "result_count": len(hits),
-                }
+                },
             )
 
             continue
@@ -688,13 +692,14 @@ def run_investigation(
             tool_history.append(result)
 
             emit(
+                "INVESTIGATING",
                 {
                     "event": "tool_called",
                     "case_id": case_id,
                     "tool": "get_definition",
                     "step": step_number,
                     "result_count": len(hits),
-                }
+                },
             )
 
             continue
@@ -720,13 +725,14 @@ def run_investigation(
             tool_history.append(result)
 
             emit(
+                "INVESTIGATING",
                 {
                     "event": "tool_called",
                     "case_id": case_id,
                     "tool": "run_rule_check",
                     "step": step_number,
                     "passed": rule_result.passed,
-                }
+                },
             )
 
             continue
@@ -758,13 +764,6 @@ def run_investigation(
             requested_ids,
         )
 
-        # =================================================
-        # IMPORTANT:
-        # If the LLM finishes without selecting evidence,
-        # but retrieval found evidence, use the retrieved
-        # evidence instead of silently throwing it away.
-        # =================================================
-
         if not evidence and all_hits:
 
             evidence = _build_evidence(
@@ -783,10 +782,6 @@ def run_investigation(
             rule_checks=[],
         )
 
-        # =================================================
-        # DETERMINISTIC EVIDENCE GUARDRAIL
-        # =================================================
-
         finding = _apply_evidence_guardrail(
             finding=finding,
             category=category,
@@ -794,6 +789,7 @@ def run_investigation(
         )
 
     emit(
+        "INVESTIGATING",
         {
             "event": "finding_created",
             "case_id": case_id,
@@ -801,7 +797,7 @@ def run_investigation(
             "assessment": finding.assessment,
             "confidence": finding.confidence,
             "evidence_count": len(finding.evidence),
-        }
+        },
     )
 
     return [finding]

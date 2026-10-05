@@ -2,15 +2,8 @@ from types import SimpleNamespace
 
 from contracts.schemas import Chunk
 
-from ai.claimlens_ai.retrieval import (
-    build_index,
-    get_retriever,
-)
-
-from ai.claimlens_ai.tools import ClaimLensTools
-
+from ai.claimlens_ai.retrieval import build_index
 from ai.claimlens_ai.investigator import run_investigation
-
 from ai.claimlens_ai.verifier import run_verification
 
 
@@ -51,15 +44,7 @@ def main():
     )
 
     # =========================================================
-    # 3. CREATE TOOLS
-    # =========================================================
-
-    retriever = get_retriever("case-001")
-
-    tools = ClaimLensTools(retriever)
-
-    # =========================================================
-    # 4. CREATE REJECTION
+    # 3. CREATE REJECTION
     # =========================================================
 
     rejection = SimpleNamespace(
@@ -68,7 +53,7 @@ def main():
     )
 
     # =========================================================
-    # 5. RUN INVESTIGATOR
+    # 4. RUN INVESTIGATOR
     # =========================================================
 
     findings = run_investigation(
@@ -86,15 +71,17 @@ def main():
         print(finding.model_dump_json(indent=2))
 
     # =========================================================
-    # 6. NORMAL VERIFICATION
+    # 5. NORMAL VERIFICATION
     # =========================================================
 
     verified = run_verification(
         case_id="case-001",
         findings=findings,
-        tools=tools,
-        facts={},
-        emit=lambda event: print("EVENT:", event),
+        emit=lambda stage, detail: print(
+            "EVENT:",
+            stage,
+            detail,
+        ),
         inject_fake_citation=False,
     )
 
@@ -117,8 +104,6 @@ def main():
 
     assert normal_result.final_confidence == normal_result.confidence
 
-    # M1's shared schema stores citation_checks as List[Any],
-    # therefore the values are dictionaries after validation.
     assert all(
         check.grounded
         for check in normal_result.citation_checks
@@ -128,7 +113,7 @@ def main():
     print("NORMAL VERIFICATION PASSED")
 
     # =========================================================
-    # 7. FAKE CITATION ATTACK
+    # 6. FAKE CITATION ATTACK
     # =========================================================
 
     print()
@@ -138,14 +123,16 @@ def main():
     attacked = run_verification(
         case_id="case-001",
         findings=findings,
-        tools=tools,
-        facts={},
-        emit=lambda event: print("EVENT:", event),
+        emit=lambda stage, detail: print(
+            "EVENT:",
+            stage,
+            detail,
+        ),
         inject_fake_citation=True,
     )
 
     # =========================================================
-    # 8. DISPLAY ATTACK RESULT
+    # 7. DISPLAY ATTACK RESULT
     # =========================================================
 
     for result in attacked:

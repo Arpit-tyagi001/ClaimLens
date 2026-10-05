@@ -62,7 +62,7 @@ def main():
         case_id="case-001",
         rejection=rejection,
         facts={},
-        emit=lambda event: print("EVENT:", event),
+        emit=lambda stage, detail: print("EVENT:", stage, detail)
     )
 
     # ---------------------------------------------------------
