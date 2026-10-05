@@ -1,5 +1,6 @@
+import os
 from functools import lru_cache
-from typing import List, Union
+from typing import List, Union, Any
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -27,11 +28,27 @@ class Settings(BaseSettings):
     LLM_REPLAY: bool = False
     SQL_ECHO: bool = False
 
+    # New M3 Settings
+    LLM_PROVIDER: str = "groq"
+    GROQ_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+
     # Stage timeouts and retries
     TIMEOUT_EXTRACTING: float = 30.0
     TIMEOUT_INVESTIGATING: float = 60.0
     TIMEOUT_VERIFYING: float = 60.0
     MAX_RETRIES: int = 2
+
+    @field_validator("MOCK_AI", "MOCK_DOCS", "LLM_REPLAY", mode="before")
+    @classmethod
+    def parse_bool(cls, v: Any) -> bool:
+        if isinstance(v, str):
+            val = v.strip().lower()
+            if val in ("1", "true", "yes", "on"):
+                return True
+            if val in ("0", "false", "no", "off"):
+                return False
+        return bool(v)
 
     @property
     def cors_origins_list(self) -> List[str]:
@@ -42,9 +59,29 @@ class Settings(BaseSettings):
         return ["http://localhost:5173"]
 
 
+def _export_to_environ(settings: Settings) -> None:
+    env_keys = [
+        "LLM_PROVIDER",
+        "GROQ_API_KEY",
+        "GEMINI_API_KEY",
+        "LLM_REPLAY",
+        "MOCK_AI",
+        "MOCK_DOCS",
+    ]
+    for key in env_keys:
+        val = getattr(settings, key, None)
+        if val is not None and key not in os.environ:
+            if isinstance(val, bool):
+                os.environ[key] = "true" if val else "false"
+            else:
+                os.environ[key] = str(val)
+
+
 @lru_cache()
 def get_settings() -> Settings:
-    return Settings()
+    st = Settings()
+    _export_to_environ(st)
+    return st
 
 
 def get_case_mode() -> dict:
@@ -54,3 +91,4 @@ def get_case_mode() -> dict:
         "mock_ai": settings.MOCK_AI,
         "replay_cache": settings.LLM_REPLAY,
     }
+
