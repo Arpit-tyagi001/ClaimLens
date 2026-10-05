@@ -75,6 +75,48 @@ ClaimLens is a hackathon MVP built in about 30 hours. It uses production-style e
 - PII masking covers phone numbers, email, Aadhaar-like and PAN-like numbers. It misses names and addresses and may mask a harmless 10- or 12-digit number.
 - The prompt-injection guard flags common instruction-like phrases and always wraps document text as delimited data. That reduces, not removes, the risk.
 
+
+## AI Investigation, Retrieval and Verification Limitations (claimlens_ai, M3)
+
+### Investigation and retrieval
+
+* The investigator depends on the available policy chunks and retrieval quality. If the relevant policy clause is not retrieved, the investigator may produce an `INSUFFICIENT_EVIDENCE` result or an incorrect finding.
+* The full retrieval implementation uses **PostgreSQL + pgvector + PostgreSQL full-text search + Sentence Transformers/PyTorch**. The complete retrieval stack is therefore heavier than the mock deployment environment.
+* Retrieval quality has not yet been evaluated with a dedicated retrieval benchmark. In particular, **recall@3 is not currently measured** on the evaluation dataset.
+* The current implementation uses a fixed embedding model and RRF-based combination of lexical and vector retrieval. Different policies or document styles may require different retrieval settings.
+* The retrieval layer is designed for the synthetic/demo dataset and has not been validated against a large corpus of real insurance policies.
+
+### AI verification
+
+* The verifier does not establish legal correctness. It checks whether a finding is supported by available evidence and whether its citation is grounded in the retrieved policy chunk.
+* `VERIFIED` means that the available evidence passed the implemented verification checks; it does not mean that the underlying insurance decision is objectively or legally correct.
+* The adversarial verifier can fail to identify a valid contradiction when the available evidence is incomplete or the model cannot identify the relevant counterargument. In that case the deterministic judge may retain the original finding.
+* The adversarial stage depends on an external LLM provider when mock mode is disabled. Provider outages, rate limits or model errors can affect the verification stage.
+* The system intentionally limits the verification loop to **one adversarial challenge and one investigator rebuttal**. It does not perform unlimited debate or iterative verification.
+* Verification confidence is only allowed to stay the same or decrease during verification. It is not an independently calibrated probability of correctness.
+
+### Citation grounding
+
+* Citation grounding verifies that the cited chunk exists and that the quoted text appears in that chunk. This is a grounding check, not a complete semantic fact-check.
+* The fake-citation test demonstrates that an obviously fabricated quote is rejected, but this does not guarantee that every possible hallucinated or misleading citation will be detected.
+* A quote can be correctly grounded in a policy chunk while still being incomplete, taken out of context, or insufficient to establish the overall claim.
+* Page and bounding-box metadata may be unavailable in the AI verifier's `CitationCheck` when the verification stage only has chunk-level evidence. Document-level grounding remains the source of page/bounding-box information.
+
+### Mock deployment
+
+* The submitted deployment uses **mock AI/retrieval stages** because the full PostgreSQL + pgvector + PyTorch/Sentence Transformers stack is too resource-intensive for the available deployment environment.
+* Mock mode demonstrates the backend workflow and contracts but does not represent the quality of the real retrieval or LLM-based investigation and verification pipeline.
+* Real M3 execution should be tested locally with the required PostgreSQL/pgvector environment and the mock switches disabled.
+* The `member-3-ai` branch contains the full local AI implementation; the deployed demo should be interpreted according to the `mode` reported by the backend.
+
+### Safety and scope
+
+* ClaimLens uses synthetic claim and policy data for the hackathon demonstration.
+* The AI pipeline must not be treated as an automated insurance adjudication system.
+* The system does not provide legal advice, predict appeal outcomes, or replace qualified human review.
+* Findings with insufficient, conflicting or poorly grounded evidence should be treated as candidates for human review rather than authoritative conclusions.
+
+
 ## Roadmap (not done)
 - Move to PostgreSQL with pgvector, Alembic migrations and a `SELECT ... FOR UPDATE SKIP LOCKED` job queue.
 - Wire the real `claimlens_docs` and `claimlens_ai` packages and run the whole flow with the mock switches off.
