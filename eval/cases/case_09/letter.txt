@@ -1,0 +1,21 @@
+NEURAL NEXUS SYNTHETIC HEALTH INSURANCE
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 14/02/2025
+Claim No: CLM/2025/0009
+Policy No: NNH/2024/100001
+Patient: Synthetic Patient I
+Date of Admission: 30/01/2025
+Date of Discharge: 03/02/2025
+Amount Claimed: Rs. 2,40,000/-
+
+Subject: Decision on your claim
+
+Dear Policyholder,
+
+After review, your claim has been rejected due to non-disclosure of tobacco use at the time of proposal, which we treat as a material misrepresentation.
+
+You may write to our Grievance Cell within 15 days if you disagree with this decision.
+
+Yours sincerely,
+Claims Manager (synthetic)

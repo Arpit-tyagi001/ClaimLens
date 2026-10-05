@@ -1,0 +1,19 @@
+{
+  "case_id": "case_03",
+  "synthetic": true,
+  "description": "Diabetes diagnosed in 2021 is a pre-existing disease and the 36-month waiting period has not ended.",
+  "letter_fields": {
+    "claim_number": "CLM/2024/0003",
+    "policy_number": "NNH/2024/100001",
+    "admission_date": "2024-11-12",
+    "amount_claimed": "125000"
+  },
+  "reasons": [
+    {
+      "category": "pre_existing",
+      "gold_clause_ids": ["4.3", "3.1"],
+      "gold_verdict": "SUPPORTED",
+      "why": "Diagnosis in 2021 is within 48 months before inception (01/04/2023), so it is pre-existing. Inception + 36 months = 01/04/2026; admission 12/11/2024 is inside it."
+    }
+  ]
+}

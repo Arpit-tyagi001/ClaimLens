@@ -1,0 +1,240 @@
+{
+  "doc_id": "pol",
+  "doc_type": "policy",
+  "n_pages": 1,
+  "has_text_layer": true,
+  "chunks": [
+    {
+      "chunk_id": "pol-c-0000",
+      "doc_id": "pol",
+      "section_path": "Policy Schedule",
+      "page": 1,
+      "text": "Policy No: NNH/2024/100001 First Policy Inception Date: 01/04/2023 Policy Period: 01/04/2024 to 31/03/2025 Sum Insured: Rs. 5,00,000/-",
+      "bbox": [
+        56.0,
+        123.2,
+        233.9,
+        179.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "pol-c-0001",
+      "doc_id": "pol",
+      "section_path": "3 Definitions > 3.1",
+      "page": 1,
+      "text": "3.1 Pre-existing Disease means any condition, ailment, injury or disease that was diagnosed by a physician within 48 months prior to the date of inception of the first policy.",
+      "bbox": [
+        56.0,
+        207.2,
+        463.9,
+        235.0
+      ],
+      "tags": [
+        "DEFINITION"
+      ]
+    },
+    {
+      "chunk_id": "pol-c-0002",
+      "doc_id": "pol",
+      "section_path": "3 Definitions > 3.2",
+      "page": 1,
+      "text": "3.2 Hospitalisation means admission in a hospital for a minimum period of 24 consecutive in-patient care hours.",
+      "bbox": [
+        56.0,
+        235.2,
+        465.6,
+        263.0
+      ],
+      "tags": [
+        "DEFINITION"
+      ]
+    },
+    {
+      "chunk_id": "pol-c-0003",
+      "doc_id": "pol",
+      "section_path": "4 Waiting Periods > 4.1",
+      "page": 1,
+      "text": "4.1 Initial waiting period: Expenses related to the treatment of any illness within 30 days from the first policy commencement date shall be excluded, except claims arising due to an accident.",
+      "bbox": [
+        56.0,
+        291.2,
+        456.2,
+        333.0
+      ],
+      "tags": [
+        "WAITING_PERIOD",
+        "EXCLUSION"
+      ]
+    },
+    {
+      "chunk_id": "pol-c-0004",
+      "doc_id": "pol",
+      "section_path": "4 Waiting Periods > 4.2",
+      "page": 1,
+      "text": "4.2 Specified disease waiting period: Expenses related to the treatment of cataract, hernia, joint replacement and kidney stones shall be excluded until the expiry of 24 months of continuous coverage after the date of inception of the first policy.",
+      "bbox": [
+        56.0,
+        333.2,
+        456.8,
+        375.0
+      ],
+      "tags": [
+        "WAITING_PERIOD",
+        "EXCLUSION"
+      ]
+    },
+    {
+      "chunk_id": "pol-c-0005",
+      "doc_id": "pol",
+      "section_path": "4 Waiting Periods > 4.3",
+      "page": 1,
+      "text": "4.3 Pre-existing disease waiting period: Expenses related to the treatment of a pre-existing disease and its direct complications shall be excluded until the expiry of 36 months of continuous coverage after the date of inception of the first policy.",
+      "bbox": [
+        56.0,
+        375.2,
+        456.7,
+        417.0
+      ],
+      "tags": [
+        "WAITING_PERIOD",
+        "EXCLUSION"
+      ]
+    },
+    {
+      "chunk_id": "pol-c-0006",
+      "doc_id": "pol",
+      "section_path": "5 Permanent Exclusions > 5.1",
+      "page": 1,
+      "text": "5.1 Cosmetic or plastic surgery, unless it is for reconstruction following an accident, burns or cancer, or is certified as medically necessary by the treating doctor.",
+      "bbox": [
+        56.0,
+        445.2,
+        423.9,
+        473.0
+      ],
+      "tags": [
+        "EXCLUSION"
+      ]
+    },
+    {
+      "chunk_id": "pol-c-0007",
+      "doc_id": "pol",
+      "section_path": "5 Permanent Exclusions > 5.2",
+      "page": 1,
+      "text": "5.2 Surgical treatment of obesity or weight control programmes.",
+      "bbox": [
+        56.0,
+        473.2,
+        337.2,
+        487.0
+      ],
+      "tags": [
+        "EXCLUSION"
+      ]
+    },
+    {
+      "chunk_id": "pol-c-0008",
+      "doc_id": "pol",
+      "section_path": "5 Permanent Exclusions > 5.3",
+      "page": 1,
+      "text": "5.3 Expenses for spectacles, contact lenses and hearing aids.",
+      "bbox": [
+        56.0,
+        487.2,
+        330.0,
+        501.0
+      ],
+      "tags": [
+        "EXCLUSION"
+      ]
+    },
+    {
+      "chunk_id": "pol-c-0009",
+      "doc_id": "pol",
+      "section_path": "5 Permanent Exclusions > 5.4",
+      "page": 1,
+      "text": "5.4 Treatment arising from the abuse of alcohol or drugs.",
+      "bbox": [
+        56.0,
+        501.2,
+        307.8,
+        515.0
+      ],
+      "tags": [
+        "EXCLUSION"
+      ]
+    },
+    {
+      "chunk_id": "pol-c-0010",
+      "doc_id": "pol",
+      "section_path": "6 Limits And Sub-Limits > 6.1",
+      "page": 1,
+      "text": "6.1 Room rent is limited to 1% of the Sum Insured per day. If a higher room category is chosen, only the room rent above this limit and the associated proportionate charges are deducted; the rest of the claim remains payable.",
+      "bbox": [
+        56.0,
+        543.2,
+        458.4,
+        585.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "pol-c-0011",
+      "doc_id": "pol",
+      "section_path": "6 Limits And Sub-Limits > 6.2",
+      "page": 1,
+      "text": "6.2 Cataract treatment is subject to a sub-limit of Rs. 40,000/- per eye.",
+      "bbox": [
+        56.0,
+        585.2,
+        366.7,
+        599.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "pol-c-0012",
+      "doc_id": "pol",
+      "section_path": "7 Claim Procedure > 7.1",
+      "page": 1,
+      "text": "7.1 The Company must be informed within 48 hours of an emergency admission.",
+      "bbox": [
+        56.0,
+        627.2,
+        413.4,
+        641.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "pol-c-0013",
+      "doc_id": "pol",
+      "section_path": "7 Claim Procedure > 7.2",
+      "page": 1,
+      "text": "7.2 The following documents must be submitted within 30 days of discharge: claim form, discharge summary, final hospital bill, investigation reports and pharmacy bills.",
+      "bbox": [
+        56.0,
+        641.2,
+        445.6,
+        669.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "pol-c-0014",
+      "doc_id": "pol",
+      "section_path": "7 Claim Procedure > 7.3",
+      "page": 1,
+      "text": "7.3 If any document listed in 7.2 is not received within 30 days of discharge, the Company shall send one written reminder, and may reject the claim only if the document is still not received 15 days after that reminder.",
+      "bbox": [
+        56.0,
+        669.2,
+        452.9,
+        711.0
+      ],
+      "tags": []
+    }
+  ],
+  "pages_without_text": []
+}

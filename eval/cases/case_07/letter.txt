@@ -1,0 +1,23 @@
+NEURAL NEXUS SYNTHETIC HEALTH INSURANCE
+SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY
+
+Date: 05/08/2024
+Claim No: CLM/2024/0007
+Policy No: NNH/2024/100001
+Patient: Synthetic Patient G
+Date of Admission: 22/07/2024
+Date of Discharge: 26/07/2024
+Amount Claimed: Rs. 96,000/-
+
+Subject: Repudiation of your claim
+
+Dear Policyholder,
+
+We regret to inform you that your claim has been repudiated for the following reason(s):
+
+1. The room rent of Rs. 8,000/- per day exceeds the room rent limit of Rs. 5,000/- per day under Clause 6.1, hence the entire claim is rejected.
+
+You may write to our Grievance Cell within 15 days if you disagree with this decision.
+
+Yours sincerely,
+Claims Manager (synthetic)

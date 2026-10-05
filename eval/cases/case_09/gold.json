@@ -1,0 +1,19 @@
+{
+  "case_id": "case_09",
+  "synthetic": true,
+  "description": "Non-disclosure is outside the MVP categories, so it must go to a human. Letter has no numbered list, which tests the fallback extractor.",
+  "letter_fields": {
+    "claim_number": "CLM/2025/0009",
+    "policy_number": "NNH/2024/100001",
+    "admission_date": "2025-01-30",
+    "amount_claimed": "240000"
+  },
+  "reasons": [
+    {
+      "category": "needs_human",
+      "gold_clause_ids": [],
+      "gold_verdict": "NEEDS_HUMAN",
+      "why": "Non-disclosure is not one of the five MVP categories."
+    }
+  ]
+}

@@ -1,0 +1,289 @@
+{
+  "doc_id": "let",
+  "doc_type": "letter",
+  "n_pages": 1,
+  "has_text_layer": true,
+  "chunks": [
+    {
+      "chunk_id": "let-l-0000",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "NEURAL NEXUS SYNTHETIC HEALTH INSURANCE",
+      "bbox": [
+        56.0,
+        59.1,
+        360.9,
+        76.3
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0001",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "SYNTHETIC LETTER - WRITTEN FOR TESTING ONLY",
+      "bbox": [
+        56.0,
+        79.1,
+        372.7,
+        96.3
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0002",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Date: 20/01/2025",
+      "bbox": [
+        56.0,
+        103.2,
+        132.7,
+        117.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0003",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Claim No: CLM/2025/0001",
+      "bbox": [
+        56.0,
+        117.2,
+        173.8,
+        131.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0004",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Policy No: NNH/2024/100001",
+      "bbox": [
+        56.0,
+        131.2,
+        186.6,
+        145.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0005",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Patient: Synthetic Patient A",
+      "bbox": [
+        56.0,
+        145.2,
+        177.2,
+        159.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0006",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Date of Admission: 10/01/2025",
+      "bbox": [
+        56.0,
+        159.2,
+        192.7,
+        173.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0007",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Date of Discharge: 11/01/2025",
+      "bbox": [
+        56.0,
+        173.2,
+        191.6,
+        187.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0008",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Amount Claimed: Rs. 45,000/-",
+      "bbox": [
+        56.0,
+        187.2,
+        189.9,
+        201.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0009",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Subject: Repudiation of your claim",
+      "bbox": [
+        56.0,
+        209.2,
+        207.7,
+        223.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0010",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Dear Policyholder,",
+      "bbox": [
+        56.0,
+        231.2,
+        137.7,
+        245.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0011",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "We have reviewed your claim. We regret to inform you that it has been repudiated for the",
+      "bbox": [
+        56.0,
+        253.2,
+        448.9,
+        267.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0012",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "following reason(s):",
+      "bbox": [
+        56.0,
+        267.2,
+        142.7,
+        281.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0013",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "1. The treatment of cataract in the left eye falls within the 24 months waiting period for",
+      "bbox": [
+        56.0,
+        289.2,
+        435.1,
+        303.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0014",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "specified diseases under Clause 4.2 of the policy.",
+      "bbox": [
+        56.0,
+        303.2,
+        286.7,
+        317.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0015",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "2. The amount claimed is above the cataract sub-limit of Rs. 40,000/- per eye under Clause",
+      "bbox": [
+        56.0,
+        317.2,
+        459.5,
+        331.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0016",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "6.2.",
+      "bbox": [
+        56.0,
+        331.2,
+        83.8,
+        345.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0017",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "You may write to our Grievance Cell within 15 days if you disagree with this decision.",
+      "bbox": [
+        56.0,
+        353.2,
+        431.1,
+        367.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0018",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Yours sincerely,",
+      "bbox": [
+        56.0,
+        375.2,
+        127.1,
+        389.0
+      ],
+      "tags": []
+    },
+    {
+      "chunk_id": "let-l-0019",
+      "doc_id": "let",
+      "section_path": "letter",
+      "page": 1,
+      "text": "Claims Manager (synthetic)",
+      "bbox": [
+        56.0,
+        389.2,
+        177.7,
+        403.0
+      ],
+      "tags": []
+    }
+  ],
+  "pages_without_text": []
+}

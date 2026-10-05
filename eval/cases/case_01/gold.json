@@ -1,0 +1,25 @@
+{
+  "case_id": "case_01",
+  "synthetic": true,
+  "description": "Cataract inside the 24-month specified-disease waiting period; amount above the cataract sub-limit.",
+  "letter_fields": {
+    "claim_number": "CLM/2025/0001",
+    "policy_number": "NNH/2024/100001",
+    "admission_date": "2025-01-10",
+    "amount_claimed": "45000"
+  },
+  "reasons": [
+    {
+      "category": "waiting_period",
+      "gold_clause_ids": ["4.2"],
+      "gold_verdict": "SUPPORTED",
+      "why": "Inception 01/04/2023 + 24 months = 01/04/2025. Admission 10/01/2025 is inside the waiting period."
+    },
+    {
+      "category": "limit_exceeded",
+      "gold_clause_ids": ["6.2"],
+      "gold_verdict": "SUPPORTED",
+      "why": "Rs. 45,000 claimed is above the Rs. 40,000 cataract sub-limit."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "synthetic_benchmark": true,
+  "n_cases": 9,
+  "extraction_correct": 9,
+  "extraction_total": 9,
+  "recall_at_3_hits": null,
+  "recall_at_3_total": null,
+  "grounding_ok": 42,
+  "grounding_total": 42,
+  "injected_caught": 34,
+  "injected_total": 34,
+  "verdict_agree": null,
+  "verdict_total": null,
+  "notes": "Synthetic benchmark: 9 cases written by the team, 3 where the rejection is supported. extraction = rejection-letter fields and reason categories match gold. grounding = real policy quotes (verbatim, reformatted, one typo) accepted by locate_quote. injected = fabricated quotes (invented, number changed, negated, spliced) rejected by locate_quote. Retrieval recall@3 and verdict agreement are not measured yet (need the AI pipeline output).",
+  "generated_at": "2026-10-05T06:26:51+00:00",
+  "synthetic_data_only": true,
+  "num_cases": 9,
+  "supported_cases": 3,
+  "letter_extraction": {
+    "matched": "9 of 9",
+    "ratio": 1.0,
+    "failures": {}
+  },
+  "letter_extraction_pdf": {
+    "measured": true,
+    "matched": "9 of 9",
+    "ratio": 1.0,
+    "failures": {}
+  },
+  "policy_facts": {
+    "matched": "9 of 9",
+    "ratio": 1.0,
+    "failures": {}
+  },
+  "pipeline": {
+    "measured": false,
+    "note": "Pass --predictions with pipeline output to measure these."
+  },
+  "fault_benchmark": {
+    "grounding_fn": "claimlens_docs.grounding.locate_quote (fuzzy match + key-word/number check)",
+    "fakes_caught": "34 of 34",
+    "catch_rate": 1.0,
+    "real_quotes_accepted": "42 of 42",
+    "false_alarms": 0,
+    "by_kind": {
+      "invented": "5 of 5",
+      "number_changed": "10 of 10",
+      "negated": "6 of 6",
+      "spliced": "13 of 13"
+    },
+    "real_by_kind": {
+      "real": "14 of 14",
+      "real_reformatted": "14 of 14",
+      "real_typo": "14 of 14"
+    },
+    "missed_examples": [],
+    "false_alarm_examples": []
+  },
+  "targets": {
+    "letter_extraction": 0.875,
+    "retrieval_recall_at_3": 0.8,
+    "verdict_agreement": 0.75,
+    "fault_catch_rate": 0.9
+  }
+}
