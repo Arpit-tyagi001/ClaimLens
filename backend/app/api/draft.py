@@ -99,7 +99,9 @@ async def create_draft(
         "text": draft_res.text,
         "citations": citations_list,
         "skipped_finding_ids": draft_res.skipped_finding_ids,
+        "generated_by": getattr(draft_res, "generated_by", "template"),
     }
+
 
 
 @router.get("/{case_id}/draft/latest")
