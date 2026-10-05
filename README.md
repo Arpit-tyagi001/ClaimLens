@@ -107,3 +107,19 @@ Tests
 The suite covers retry semantics, timeouts, fallback, resume after a simulated crash, the duplicate-start guard, event sequence numbers, SSE replay and keep-alive, upload validation, PDF serving and path-traversal protection, uniform errors including 500s, the facts confirm flow, the review and audit log (including append-only enforcement and rollback atomicity), delete and TTL purge, rate limiting, draft, export (including HTML escaping), trace, and wiring behind the mock switches with fake packages.
 
 Run pytest -q for the current count. See docs/LIMITATIONS.md for what this backend does not do.
+Document intelligence, grounding, evaluation and deployment (Member 4)
+
+docint/claimlens_docs turns the policy PDF and the rejection letter into structured data and proves that cited clauses exist in the policy. No LLM is used in it. The backend imports it as docint.claimlens_docs.
+
+ingest_document reads a PDF with PyMuPDF (lines with bounding boxes, pages with no text layer). The sectionizer makes one chunk per policy clause with a section_path such as "4 Waiting Periods > 4.2".
+extract_rejection and extract_policy_facts return the contract models; every rejection reason has a page and bbox, and every policy fact keeps the chunk it came from.
+locate_quote finds a quote in the policy (exact, then fuzzy) and returns page, bbox and chunk_id. A close match is rejected if any number or word such as "not", "only" or "excluded" differs.
+Rule checks (waiting period, policy period, limits), PII masking, prompt-injection flags with delimited data, upload validation and TTL purge.
+Run the evaluation from the repo root:
+
+python -m eval.run           # metrics table; writes eval/report.json, served by GET /api/eval/latest
+python -m eval.run --gate    # exits 1 if a metric drops below target (CI)
+
+On 11 synthetic cases and 2 synthetic policies: letter extraction matches gold in 11 of 11 (also through rendered PDFs), policy facts 18 of 18, fabricated citations rejected 63 of 63, real quotes accepted 78 of 78. Retrieval recall@3 and verdict agreement are not measured yet. These are exact counts on a small synthetic set, not accuracy on real claims.
+
+Deployment: docker compose up --build starts Postgres with pgvector, the backend and the frontend (http://localhost:5173). deploy/ has the Dockerfiles (non-root, healthchecks, one worker) and a Render blueprint. CI (.github/workflows/ci.yml) runs lint, type checks, pytest, the AI tests, the eval gate, gitleaks, the frontend build and the Docker builds. Details: docint/README.md.

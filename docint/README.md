@@ -53,16 +53,18 @@ Retrieval recall@3 and verdict agreement need the AI pipeline's output:
 `python -m eval.run --predictions predictions.json` with
 `{"case_01": {"reasons": [{"retrieved_clause_ids": ["4.2"], "verdict": "SUPPORTED"}]}}`.
 
-## Results on 9 synthetic cases
+## Results on 11 synthetic cases and 2 synthetic policies
 
 | Metric | Result |
 |---|---|
-| Letter extraction matches gold (text and rendered PDF) | 9 of 9 |
-| Policy facts match gold | 9 of 9 |
-| Fabricated citations rejected by `locate_quote` | 34 of 34 |
-| Real quotes accepted (verbatim, reformatted, one typo) | 42 of 42 |
+| Letter extraction matches gold (text and rendered PDF) | 11 of 11 |
+| Policy facts match gold (both policies) | 18 of 18 |
+| Fabricated citations rejected by `locate_quote` | 63 of 63 |
+| Real quotes accepted (verbatim, reformatted, one typo) | 78 of 78 |
 | Retrieval recall@3, verdict agreement | not measured yet |
 
+The two policies use different styles (`SECTION 4.` / `4.2` versus `PART 3 -` / `3.2.`, and different field
+names such as "Policy Period" / "Period of Insurance"), so extraction is not tuned to one layout only.
 Exact counts on a small synthetic set, not accuracy on real claims. See `docs/LIMITATIONS.md`.
 
 ## Deploy

@@ -18,10 +18,11 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install ruff mypy
-      - name: Lint and type-check docint
+      - name: Lint docint; type-check docint and contracts
         run: |
           ruff check --line-length 120 --select E,F,W,I,B --target-version py311 docint eval
           mypy docint/claimlens_docs --ignore-missing-imports
+          mypy contracts --ignore-missing-imports
       - name: Tests from repo root (pytest.ini sets pythonpath and testpaths)
         run: pytest -q
       - name: AI tests (ai/claimlens_ai)

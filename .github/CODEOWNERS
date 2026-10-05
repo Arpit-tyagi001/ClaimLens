@@ -1,0 +1,10 @@
+# One owner per area (work division, section 10). Every PR also needs a review from a different member.
+# M2 (Shlok Verma) and M3 (Shivam): replace the placeholders below with your GitHub usernames.
+/backend/      @Arpit-tyagi001
+/docint/       @Shubham-stack336
+/eval/         @Shubham-stack336
+/deploy/       @Shubham-stack336
+/.github/      @Shubham-stack336
+# /frontend/   @<M2-github-username>
+# /ai/         @<M3-github-username>
+/contracts/    @Arpit-tyagi001 @Shubham-stack336
